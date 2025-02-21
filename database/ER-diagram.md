@@ -11,55 +11,57 @@ erDiagram
     article_views }|--o| users : "belongs_to"
 
     users {
-        id int PK
-        name varchar
-        email varchar
-        password varchar
-        role enum
-        created_at timestamp
-        updated_at timestamp
+        id int PK "Первичный ключ"
+        name varchar "Имя пользователя"
+        email varchar "Email пользователя"
+        password varchar "Хэш пароля"
+        role enum "Роль (admin/user)"
+        email_verified_at timestamp "Дата верификации email"
+        remember_token varchar "Токен для 'запомнить меня'"
+        created_at timestamp "Дата создания"
+        updated_at timestamp "Дата обновления"
     }
 
     articles {
-        id int PK
-        title varchar
-        content text
-        image_path varchar
-        user_id int FK
-        status enum
-        created_at timestamp
-        updated_at timestamp
+        id int PK "Первичный ключ"
+        title varchar "Заголовок статьи"
+        content text "Содержание статьи"
+        image_path varchar "Путь к изображению"
+        user_id int FK "Внешний ключ на users"
+        status enum "Статус (draft/published)"
+        created_at timestamp "Дата создания"
+        updated_at timestamp "Дата обновления"
     }
 
     comments {
-        id int PK
-        content text
-        article_id int FK
-        user_id int FK
-        parent_id int FK
-        created_at timestamp
-        updated_at timestamp
+        id int PK "Первичный ключ"
+        content text "Текст комментария"
+        article_id int FK "Внешний ключ на articles"
+        user_id int FK "Внешний ключ на users"
+        parent_id int FK "Внешний ключ на comments (для древовидных комментариев)"
+        created_at timestamp "Дата создания"
+        updated_at timestamp "Дата обновления"
     }
 
     article_views {
-        id int PK
-        article_id int FK
-        user_id int FK
-        ip_address varchar
-        viewed_at timestamp
+        id int PK "Первичный ключ"
+        article_id int FK "Внешний ключ на articles"
+        user_id int FK "Внешний ключ на users (может быть null для анонимных просмотров)"
+        ip_address varchar "IP адрес просмотревшего"
+        viewed_at timestamp "Дата и время просмотра"
     }
 
     tags {
-        id int PK
-        name varchar
-        slug varchar
-        created_at timestamp
-        updated_at timestamp
+        id int PK "Первичный ключ"
+        name varchar "Название тега"
+        slug varchar "URL-friendly версия названия"
+        created_at timestamp "Дата создания"
+        updated_at timestamp "Дата обновления"
     }
 
     article_tag {
-        article_id int FK
-        tag_id int FK
+        article_id int FK "Внешний ключ на articles"
+        tag_id int FK "Внешний ключ на tags"
     }
 ```
 
