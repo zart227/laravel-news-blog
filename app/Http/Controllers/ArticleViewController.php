@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Article;
 use App\Models\ArticleView;
 use App\Http\Requests\ArticleViewRequest;
+use App\Events\StatisticsUpdated;
 use App\Traits\HandlesErrors;
 
 class ArticleViewController extends Controller
@@ -32,6 +33,10 @@ class ArticleViewController extends Controller
                     'ip_address' => $validated['ip_address'],
                     'viewed_at' => now(),
                 ]);
+
+                // Отправляем событие об обновлении статистики
+                $viewsCount = $article->views()->count();
+                broadcast(new StatisticsUpdated($article->id, 'views', $viewsCount));
             }
 
             return response()->json([

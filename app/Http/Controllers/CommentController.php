@@ -9,6 +9,7 @@ use App\Http\Requests\CommentRequest;
 use App\Events\CommentCreated;
 use App\Events\CommentUpdated;
 use App\Events\CommentDeleted;
+use App\Events\StatisticsUpdated;
 use Illuminate\Http\Request;
 
 class CommentController extends Controller
@@ -28,6 +29,10 @@ class CommentController extends Controller
 
             $comment->load('user');
             broadcast(new CommentCreated($comment))->toOthers();
+
+            // Отправляем событие об обновлении статистики
+            $commentsCount = $article->comments()->count();
+            broadcast(new StatisticsUpdated($article->id, 'comments', $commentsCount));
 
             return response()->json([
                 'message' => 'Комментарий успешно добавлен',
@@ -72,6 +77,10 @@ class CommentController extends Controller
             $comment->delete();
 
             broadcast(new CommentDeleted($commentId, $articleId))->toOthers();
+
+            // Отправляем событие об обновлении статистики
+            $commentsCount = Comment::where('article_id', $articleId)->count();
+            broadcast(new StatisticsUpdated($articleId, 'comments', $commentsCount));
 
             return response()->json([
                 'message' => 'Комментарий успешно удален'

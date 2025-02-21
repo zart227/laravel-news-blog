@@ -16,7 +16,7 @@ class ArticleService
     {
         $cacheKey = 'articles:' . md5(json_encode($filters) . $perPage);
 
-        return Cache::remember($cacheKey, self::CACHE_TTL, function () use ($filters, $perPage) {
+        return Cache::tags(['articles', 'statistics'])->remember($cacheKey, self::CACHE_TTL, function () use ($filters, $perPage) {
             $query = Article::query()
                 ->with(['user', 'tags'])
                 ->latest();
@@ -36,7 +36,7 @@ class ArticleService
     {
         $cacheKey = 'article:' . $id;
 
-        return Cache::remember($cacheKey, self::CACHE_TTL, function () use ($id) {
+        return Cache::tags(['articles', 'statistics'])->remember($cacheKey, self::CACHE_TTL, function () use ($id) {
             return Article::with(['user', 'tags', 'comments.user'])->findOrFail($id);
         });
     }
@@ -48,14 +48,15 @@ class ArticleService
                 'title' => $data['title'],
                 'content' => $data['content'],
                 'image' => $data['image'] ?? null,
-                'user_id' => auth()->id()
+                'user_id' => auth()->id(),
+                'status' => $data['status'] ?? 'draft'
             ]);
 
             if (isset($data['tags'])) {
                 $article->tags()->sync($data['tags']);
             }
 
-            $this->clearArticlesCache();
+            $this->clearCache();
 
             return $article->load(['user', 'tags']);
         });
@@ -68,14 +69,14 @@ class ArticleService
                 'title' => $data['title'],
                 'content' => $data['content'],
                 'image' => $data['image'] ?? $article->image,
+                'status' => $data['status'] ?? $article->status
             ]);
 
             if (isset($data['tags'])) {
                 $article->tags()->sync($data['tags']);
             }
 
-            $this->clearArticleCache($article->id);
-            $this->clearArticlesCache();
+            $this->clearCache();
 
             return $article->load(['user', 'tags']);
         });
@@ -85,23 +86,12 @@ class ArticleService
     {
         DB::transaction(function () use ($article) {
             $article->delete();
-            $this->clearArticleCache($article->id);
-            $this->clearArticlesCache();
+            $this->clearCache();
         });
     }
 
-    protected function clearArticleCache(int $id): void
+    protected function clearCache(): void
     {
-        Cache::forget('article:' . $id);
-    }
-
-    protected function clearArticlesCache(): void
-    {
-        $keys = Cache::get('article_cache_keys', []);
-        foreach ($keys as $key) {
-            if (strpos($key, 'articles:') === 0) {
-                Cache::forget($key);
-            }
-        }
+        Cache::tags(['articles', 'statistics'])->flush();
     }
 } 
