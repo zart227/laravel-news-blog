@@ -1,0 +1,492 @@
+{
+    "openapi": "3.0.0",
+    "info": {
+        "title": "Laravel News Blog API Documentation",
+        "description": "API документация для новостного блога на Laravel",
+        "contact": {
+            "email": "admin@example.com"
+        },
+        "license": {
+            "name": "MIT",
+            "url": "https://opensource.org/licenses/MIT"
+        },
+        "version": "1.0.0"
+    },
+    "servers": [
+        {
+            "url": "http://my-default-host.com",
+            "description": "API Server"
+        }
+    ],
+    "paths": {
+        "/api/articles": {
+            "get": {
+                "tags": [
+                    "Articles"
+                ],
+                "summary": "Получить список статей",
+                "operationId": "93ded9e31119e6bbb22455c72ef97f19",
+                "parameters": [
+                    {
+                        "name": "search",
+                        "in": "query",
+                        "description": "Поиск по заголовку",
+                        "required": false,
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "name": "status",
+                        "in": "query",
+                        "description": "Фильтр по статусу (draft/published)",
+                        "required": false,
+                        "schema": {
+                            "type": "string",
+                            "enum": [
+                                "draft",
+                                "published"
+                            ]
+                        }
+                    },
+                    {
+                        "name": "tag",
+                        "in": "query",
+                        "description": "Фильтр по ID тега",
+                        "required": false,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Успешный ответ",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "data": {
+                                            "type": "array",
+                                            "items": {
+                                                "$ref": "#/components/schemas/Article"
+                                            }
+                                        },
+                                        "links": {
+                                            "type": "object"
+                                        },
+                                        "meta": {
+                                            "type": "object"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "post": {
+                "tags": [
+                    "Articles"
+                ],
+                "summary": "Создать новую статью",
+                "operationId": "75bdc5f953261e6f34852386c9b522c0",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/ArticleRequest"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "201": {
+                        "description": "Статья успешно создана",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Article"
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "description": "Ошибка валидации"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/api/articles/{article}": {
+            "get": {
+                "tags": [
+                    "Articles"
+                ],
+                "summary": "Получить детали статьи",
+                "operationId": "be7af7750efdb2560ecfae862b170bf4",
+                "parameters": [
+                    {
+                        "name": "article",
+                        "in": "path",
+                        "description": "ID статьи",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Успешный ответ",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Article"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Статья не найдена"
+                    }
+                }
+            },
+            "put": {
+                "tags": [
+                    "Articles"
+                ],
+                "summary": "Обновить статью",
+                "operationId": "fe4e3c5cea1b864c375e33fcdcd9e5dd",
+                "parameters": [
+                    {
+                        "name": "article",
+                        "in": "path",
+                        "description": "ID статьи",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/ArticleRequest"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Статья успешно обновлена",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Article"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Статья не найдена"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            },
+            "delete": {
+                "tags": [
+                    "Articles"
+                ],
+                "summary": "Удалить статью",
+                "operationId": "9b77178e329162be81e6248247b41f9f",
+                "parameters": [
+                    {
+                        "name": "article",
+                        "in": "path",
+                        "description": "ID статьи",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "204": {
+                        "description": "Статья успешно удалена"
+                    },
+                    "404": {
+                        "description": "Статья не найдена"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        }
+    },
+    "components": {
+        "schemas": {
+            "Article": {
+                "title": "Article",
+                "description": "Модель статьи",
+                "properties": {
+                    "id": {
+                        "title": "ID",
+                        "description": "ID статьи",
+                        "type": "integer",
+                        "format": "int64",
+                        "example": 1
+                    },
+                    "title": {
+                        "title": "Title",
+                        "description": "Заголовок статьи",
+                        "type": "string",
+                        "example": "Введение в Laravel"
+                    },
+                    "content": {
+                        "title": "Content",
+                        "description": "Содержание статьи",
+                        "type": "string",
+                        "example": "Полное содержание статьи..."
+                    },
+                    "image_path": {
+                        "title": "Image Path",
+                        "description": "Путь к изображению статьи",
+                        "type": "string",
+                        "example": "articles/image.jpg"
+                    },
+                    "status": {
+                        "title": "Status",
+                        "description": "Статус статьи",
+                        "type": "string",
+                        "enum": [
+                            "draft",
+                            "published"
+                        ],
+                        "example": "published"
+                    },
+                    "user_id": {
+                        "title": "Author ID",
+                        "description": "ID автора статьи",
+                        "type": "integer",
+                        "format": "int64",
+                        "example": 1
+                    },
+                    "created_at": {
+                        "title": "Created at",
+                        "description": "Дата создания",
+                        "type": "string",
+                        "format": "datetime",
+                        "example": "2024-01-01 12:00:00"
+                    },
+                    "updated_at": {
+                        "title": "Updated at",
+                        "description": "Дата обновления",
+                        "type": "string",
+                        "format": "datetime",
+                        "example": "2024-01-01 12:00:00"
+                    },
+                    "user": {
+                        "$ref": "#/components/schemas/User"
+                    },
+                    "tags": {
+                        "title": "Tags",
+                        "description": "Теги статьи",
+                        "type": "array",
+                        "items": {
+                            "$ref": "#/components/schemas/Tag"
+                        }
+                    }
+                },
+                "type": "object",
+                "xml": {
+                    "name": "Article"
+                }
+            },
+            "Tag": {
+                "title": "Tag",
+                "description": "Модель тега",
+                "properties": {
+                    "id": {
+                        "title": "ID",
+                        "description": "ID тега",
+                        "type": "integer",
+                        "format": "int64",
+                        "example": 1
+                    },
+                    "name": {
+                        "title": "Name",
+                        "description": "Название тега",
+                        "type": "string",
+                        "example": "Laravel"
+                    },
+                    "slug": {
+                        "title": "Slug",
+                        "description": "URL-friendly версия названия",
+                        "type": "string",
+                        "example": "laravel"
+                    },
+                    "created_at": {
+                        "title": "Created at",
+                        "description": "Дата создания",
+                        "type": "string",
+                        "format": "datetime",
+                        "example": "2024-01-01 12:00:00"
+                    },
+                    "updated_at": {
+                        "title": "Updated at",
+                        "description": "Дата обновления",
+                        "type": "string",
+                        "format": "datetime",
+                        "example": "2024-01-01 12:00:00"
+                    }
+                },
+                "type": "object",
+                "xml": {
+                    "name": "Tag"
+                }
+            },
+            "User": {
+                "title": "User",
+                "description": "Модель пользователя",
+                "properties": {
+                    "id": {
+                        "title": "ID",
+                        "description": "ID пользователя",
+                        "type": "integer",
+                        "format": "int64",
+                        "example": 1
+                    },
+                    "name": {
+                        "title": "Name",
+                        "description": "Имя пользователя",
+                        "type": "string",
+                        "example": "John Doe"
+                    },
+                    "email": {
+                        "title": "Email",
+                        "description": "Email пользователя",
+                        "type": "string",
+                        "format": "email",
+                        "example": "user@example.com"
+                    },
+                    "role": {
+                        "title": "Role",
+                        "description": "Роль пользователя",
+                        "type": "string",
+                        "enum": [
+                            "user",
+                            "admin"
+                        ],
+                        "example": "user"
+                    },
+                    "email_verified_at": {
+                        "title": "Email Verified At",
+                        "description": "Дата верификации email",
+                        "type": "string",
+                        "format": "datetime",
+                        "example": "2024-01-01 12:00:00",
+                        "nullable": true
+                    },
+                    "created_at": {
+                        "title": "Created at",
+                        "description": "Дата создания",
+                        "type": "string",
+                        "format": "datetime",
+                        "example": "2024-01-01 12:00:00"
+                    },
+                    "updated_at": {
+                        "title": "Updated at",
+                        "description": "Дата обновления",
+                        "type": "string",
+                        "format": "datetime",
+                        "example": "2024-01-01 12:00:00"
+                    }
+                },
+                "type": "object",
+                "xml": {
+                    "name": "User"
+                }
+            },
+            "ArticleRequest": {
+                "title": "Article Request",
+                "description": "Запрос на создание/обновление статьи",
+                "required": [
+                    "title",
+                    "content"
+                ],
+                "properties": {
+                    "title": {
+                        "title": "Title",
+                        "description": "Заголовок статьи",
+                        "type": "string",
+                        "example": "Введение в Laravel"
+                    },
+                    "content": {
+                        "title": "Content",
+                        "description": "Содержание статьи",
+                        "type": "string",
+                        "example": "Полное содержание статьи..."
+                    },
+                    "image": {
+                        "title": "Image",
+                        "description": "Изображение статьи",
+                        "type": "string",
+                        "format": "binary"
+                    },
+                    "status": {
+                        "title": "Status",
+                        "description": "Статус статьи",
+                        "type": "string",
+                        "enum": [
+                            "draft",
+                            "published"
+                        ],
+                        "example": "draft"
+                    },
+                    "tags": {
+                        "title": "Tags",
+                        "description": "ID тегов",
+                        "type": "array",
+                        "items": {
+                            "type": "integer"
+                        },
+                        "example": [
+                            1,
+                            2,
+                            3
+                        ]
+                    }
+                },
+                "type": "object"
+            }
+        },
+        "securitySchemes": {
+            "sanctum": {
+                "type": "http",
+                "scheme": "bearer"
+            }
+        }
+    },
+    "tags": [
+        {
+            "name": "Articles",
+            "description": "API эндпоинты для работы со статьями"
+        }
+    ]
+}

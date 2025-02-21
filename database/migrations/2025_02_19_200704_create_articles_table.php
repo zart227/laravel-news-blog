@@ -19,6 +19,11 @@ return new class extends Migration
             $table->enum('status', ['draft', 'published'])->default('draft');
             $table->foreignId('user_id')->constrained()->onDelete('cascade');
             $table->timestamps();
+
+            // Индексы для оптимизации запросов
+            $table->index('title');
+            $table->index('created_at');
+            $table->index(['user_id', 'created_at']);
         });
     }
 
