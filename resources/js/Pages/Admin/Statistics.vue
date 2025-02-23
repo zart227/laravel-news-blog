@@ -1,7 +1,15 @@
 <template>
+  <Head title="Статистика" />
+
   <AppLayout>
-    <div class="py-6">
-      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    <template #header>
+      <h2 class="font-semibold text-xl text-gray-800 leading-tight">
+        Статистика
+      </h2>
+    </template>
+
+    <div class="py-12">
+      <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
         <!-- Период и экспорт -->
         <div class="flex justify-between items-center mb-6">
           <div class="w-64">
@@ -25,6 +33,83 @@
             </svg>
             Экспорт CSV
           </button>
+        </div>
+
+        <!-- Основные показатели -->
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
+          <div class="bg-white overflow-hidden shadow-xl sm:rounded-lg p-6">
+            <h3 class="text-lg font-semibold text-gray-800 mb-4">Статьи</h3>
+            <div class="space-y-2">
+              <div class="flex justify-between">
+                <span class="text-gray-600">Всего:</span>
+                <span class="font-medium">{{ statistics.totalArticles }}</span>
+              </div>
+              <div class="flex justify-between">
+                <span class="text-gray-600">Опубликовано:</span>
+                <span class="font-medium">{{ statistics.publishedArticles }}</span>
+              </div>
+              <div class="flex justify-between">
+                <span class="text-gray-600">Черновики:</span>
+                <span class="font-medium">{{ statistics.draftArticles }}</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="bg-white overflow-hidden shadow-xl sm:rounded-lg p-6">
+            <h3 class="text-lg font-semibold text-gray-800 mb-4">Теги</h3>
+            <div class="space-y-2">
+              <div class="flex justify-between">
+                <span class="text-gray-600">Всего тегов:</span>
+                <span class="font-medium">{{ statistics.totalTags }}</span>
+              </div>
+              <div class="mt-4">
+                <h4 class="text-sm font-medium text-gray-600 mb-2">Популярные теги:</h4>
+                <div class="space-y-1">
+                  <div v-for="tag in statistics.popularTags" 
+                       :key="tag.id" 
+                       class="flex justify-between">
+                    <span class="text-gray-800">{{ tag.name }}</span>
+                    <span class="text-gray-600">{{ tag.articles_count }}</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="bg-white overflow-hidden shadow-xl sm:rounded-lg p-6">
+            <h3 class="text-lg font-semibold text-gray-800 mb-4">Пользователи</h3>
+            <div class="flex justify-between">
+              <span class="text-gray-600">Всего пользователей:</span>
+              <span class="font-medium">{{ statistics.totalUsers }}</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Последние статьи -->
+        <div class="bg-white overflow-hidden shadow-xl sm:rounded-lg p-6">
+          <h3 class="text-lg font-semibold text-gray-800 mb-4">Последние статьи</h3>
+          <div class="space-y-4">
+            <div v-for="article in statistics.recentArticles" 
+                 :key="article.id" 
+                 class="flex justify-between items-center">
+              <div>
+                <Link :href="route('articles.show', article.id)" 
+                      class="text-gray-800 hover:text-gray-600">
+                  {{ article.title }}
+                </Link>
+                <div class="text-sm text-gray-600">
+                  {{ article.author.name }} • {{ formatDate(article.created_at) }}
+                </div>
+              </div>
+              <span class="px-2 py-1 text-xs rounded-full"
+                    :class="{
+                        'bg-green-100 text-green-800': article.status === 'published',
+                        'bg-gray-100 text-gray-800': article.status === 'draft'
+                    }">
+                {{ article.status === 'published' ? 'Опубликовано' : 'Черновик' }}
+              </span>
+            </div>
+          </div>
         </div>
 
         <!-- Общая статистика -->
@@ -172,6 +257,7 @@
 
 <script setup>
 import { ref, onMounted, computed, onBeforeUnmount } from 'vue';
+import { Head, Link } from '@inertiajs/vue3';
 import AppLayout from '@/Layouts/AppLayout.vue';
 import { Line as LineChart } from 'vue-chartjs';
 import { Chart as ChartJS, CategoryScale, LinearScale, PointElement, LineElement, Title, Tooltip, Legend } from 'chart.js';

@@ -47,7 +47,7 @@ class ArticleService
             $article = Article::create([
                 'title' => $data['title'],
                 'content' => $data['content'],
-                'image' => $data['image'] ?? null,
+                'image_path' => $data['image'] ?? null,
                 'user_id' => auth()->id(),
                 'status' => $data['status'] ?? 'draft'
             ]);
@@ -68,7 +68,7 @@ class ArticleService
             $article->update([
                 'title' => $data['title'],
                 'content' => $data['content'],
-                'image' => $data['image'] ?? $article->image,
+                'image_path' => $data['image'] ?? $article->image_path,
                 'status' => $data['status'] ?? $article->status
             ]);
 

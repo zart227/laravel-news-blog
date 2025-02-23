@@ -1,0 +1,66 @@
+version: '3.8'
+
+services:
+  app:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile
+    container_name: news-blog-app
+    restart: unless-stopped
+    working_dir: /var/www
+    volumes:
+      - .:/var/www
+    ports:
+      - "5173:5173"
+    networks:
+      - news-blog-network
+    depends_on:
+      - mysql
+      - redis
+
+  nginx:
+    image: nginx:alpine
+    container_name: news-blog-nginx
+    restart: unless-stopped
+    ports:
+      - "8000:80"
+    volumes:
+      - .:/var/www
+      - ./docker/nginx:/etc/nginx/conf.d
+    networks:
+      - news-blog-network
+    depends_on:
+      - app
+
+  mysql:
+    image: mysql:8.0
+    container_name: news-blog-mysql
+    restart: unless-stopped
+    environment:
+      MYSQL_DATABASE: laravel_news_blog
+      MYSQL_USER: laravel
+      MYSQL_PASSWORD: secret
+      MYSQL_ROOT_PASSWORD: secret
+    volumes:
+      - mysql-data:/var/lib/mysql
+    ports:
+      - "3307:3306"
+    networks:
+      - news-blog-network
+
+  redis:
+    image: redis:alpine
+    container_name: news-blog-redis
+    restart: unless-stopped
+    ports:
+      - "6380:6379"
+    networks:
+      - news-blog-network
+
+networks:
+  news-blog-network:
+    driver: bridge
+
+volumes:
+  mysql-data:
+    driver: local 

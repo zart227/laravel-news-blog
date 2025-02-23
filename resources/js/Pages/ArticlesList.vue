@@ -1,134 +1,79 @@
 <template>
-  <div class="articles-list">
+  <div class="container mx-auto px-4 py-8">
+    <h1 class="text-3xl font-bold mb-8">Статьи</h1>
+    
     <div v-if="loading" class="text-center">
-      <div class="spinner-border" role="status">
-        <span class="visually-hidden">Загрузка...</span>
-      </div>
+      <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-gray-900 mx-auto"></div>
     </div>
-
-    <div v-else-if="error" class="alert alert-danger">
+    
+    <div v-else-if="error" class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded">
       {{ error }}
     </div>
-
-    <div v-else>
-      <!-- Список статей -->
-      <div class="row">
-        <div v-for="article in articles.data" :key="article.id" class="col-md-6 mb-4">
-          <div class="card h-100">
-            <img
-              v-if="article.image_path"
-              :src="'/storage/' + article.image_path"
-              class="card-img-top"
-              :alt="article.title"
-            >
-            <div class="card-body">
-              <h5 class="card-title">{{ article.title }}</h5>
-              <div class="card-meta text-muted mb-2">
-                <small>
-                  Автор: {{ article.user.name }} |
-                  {{ formatDate(article.created_at) }}
-                </small>
-              </div>
-              <div class="tags mb-2">
-                <span
-                  v-for="tag in article.tags"
-                  :key="tag.id"
-                  class="badge bg-secondary me-1"
-                >
-                  {{ tag.name }}
-                </span>
-              </div>
-              <p class="card-text">
-                {{ truncateText(article.content, 150) }}
-              </p>
-              <router-link
-                :to="{ name: 'article', params: { id: article.id }}"
-                class="btn btn-primary"
-              >
-                Читать далее
-              </router-link>
+    
+    <div v-else class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+      <div v-for="article in articles.data" :key="article.id" class="bg-white rounded-lg shadow-md overflow-hidden">
+        <img v-if="article.image" :src="article.image" :alt="article.title" class="w-full h-48 object-cover">
+        <div class="p-6">
+          <h2 class="text-xl font-semibold mb-2">
+            <Link :href="route('articles.show', article.id)" class="hover:text-blue-600">
+              {{ article.title }}
+            </Link>
+          </h2>
+          <p class="text-gray-600 mb-4">{{ article.excerpt }}</p>
+          <div class="flex items-center justify-between">
+            <div class="flex items-center">
+              <img :src="article.user.avatar" :alt="article.user.name" class="w-8 h-8 rounded-full mr-2">
+              <span class="text-sm text-gray-600">{{ article.user.name }}</span>
             </div>
+            <span class="text-sm text-gray-500">{{ formatDate(article.created_at) }}</span>
           </div>
         </div>
       </div>
-
-      <!-- Пагинация -->
-      <nav v-if="articles.meta" aria-label="Page navigation" class="mt-4">
-        <ul class="pagination justify-content-center">
-          <li
-            v-for="link in articles.meta.links"
-            :key="link.url"
-            class="page-item"
-            :class="{ active: link.active, disabled: !link.url }"
-          >
-            <a
-              class="page-link"
-              href="#"
-              @click.prevent="loadPage(link.url)"
-              v-html="link.label"
-            ></a>
-          </li>
-        </ul>
-      </nav>
+    </div>
+    
+    <div v-if="articles.data?.length === 0" class="text-center text-gray-600 mt-8">
+      Статьи не найдены
+    </div>
+    
+    <div v-if="articles.links" class="mt-8">
+      <Pagination :links="articles.links" />
     </div>
   </div>
 </template>
 
-<script>
+<script setup>
 import { ref, onMounted } from 'vue';
+import { Link } from '@inertiajs/vue3';
 import axios from 'axios';
+import Pagination from '@/Components/Pagination.vue';
 
-export default {
-  name: 'ArticlesList',
+const articles = ref({ data: [] });
+const loading = ref(true);
+const error = ref(null);
 
-  setup() {
-    const articles = ref({ data: [] });
-    const loading = ref(true);
-    const error = ref(null);
-
-    const loadArticles = async (url = '/api/articles') => {
-      try {
-        loading.value = true;
-        const response = await axios.get(url);
-        articles.value = response.data;
-      } catch (err) {
-        error.value = 'Ошибка при загрузке статей';
-        console.error('Error loading articles:', err);
-      } finally {
-        loading.value = false;
-      }
-    };
-
-    const loadPage = (url) => {
-      if (url) {
-        loadArticles(url);
-        window.scrollTo(0, 0);
-      }
-    };
-
-    const formatDate = (date) => {
-      return new Date(date).toLocaleString();
-    };
-
-    const truncateText = (text, length) => {
-      if (text.length <= length) return text;
-      return text.substring(0, length) + '...';
-    };
-
-    onMounted(() => {
-      loadArticles();
-    });
-
-    return {
-      articles,
-      loading,
-      error,
-      loadPage,
-      formatDate,
-      truncateText
-    };
+const loadArticles = async () => {
+  try {
+    const response = await axios.get('/api/articles');
+    articles.value = response.data;
+  } catch (err) {
+    error.value = 'Ошибка при загрузке статей: ' + err.message;
+    console.error('Error loading articles:', err);
+  } finally {
+    loading.value = false;
   }
 };
+
+const formatDate = (date) => {
+  return new Date(date).toLocaleDateString('ru-RU', {
+    year: 'numeric',
+    month: 'long',
+    day: 'numeric'
+  });
+};
+
+onMounted(() => {
+  loadArticles();
+});
 </script>
 
 <style scoped>

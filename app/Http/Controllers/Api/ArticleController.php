@@ -7,6 +7,7 @@ use App\Models\Article;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
+use Illuminate\Http\JsonResponse;
 
 /**
  * @OA\Info(
@@ -66,23 +67,9 @@ class ArticleController extends Controller
      *     )
      * )
      */
-    public function index(Request $request)
+    public function index(): JsonResponse
     {
         $articles = Article::with(['user', 'tags'])
-            ->when(auth()->user()?->role !== 'admin', function ($query) {
-                $query->where('status', 'published');
-            })
-            ->when($request->filled('search'), function ($query) use ($request) {
-                $query->where('title', 'like', '%' . $request->search . '%');
-            })
-            ->when($request->filled('status'), function ($query) use ($request) {
-                $query->where('status', $request->status);
-            })
-            ->when($request->filled('tag'), function ($query) use ($request) {
-                $query->whereHas('tags', function ($query) use ($request) {
-                    $query->where('tags.id', $request->tag);
-                });
-            })
             ->latest()
             ->paginate(10);
 

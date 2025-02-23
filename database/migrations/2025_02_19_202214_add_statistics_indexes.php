@@ -12,10 +12,6 @@ return new class extends Migration
             $table->index(['article_id', 'viewed_at']);
             $table->index('ip_address');
         });
-
-        Schema::table('comments', function (Blueprint $table) {
-            $table->index(['article_id', 'created_at']);
-        });
     }
 
     public function down(): void
@@ -23,10 +19,6 @@ return new class extends Migration
         Schema::table('article_views', function (Blueprint $table) {
             $table->dropIndex(['article_id', 'viewed_at']);
             $table->dropIndex(['ip_address']);
-        });
-
-        Schema::table('comments', function (Blueprint $table) {
-            $table->dropIndex(['article_id', 'created_at']);
         });
     }
 }; 
