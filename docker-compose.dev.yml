@@ -1,0 +1,169 @@
+services:
+  app:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile.dev
+      target: dev
+    container_name: news-blog-app
+    restart: no
+    working_dir: /var/www
+    volumes:
+      - ./storage:/var/www/storage
+      - ./node_modules:/var/www/node_modules
+      - ./vendor:/var/www/vendor
+    ports:
+      - "5173:5173"
+      - "8081:8000"
+    environment:
+      - VITE_APP_URL=http://127.0.0.1:8084
+      - VITE_DEV_SERVER_URL=http://127.0.0.1:5173
+      - VITE_HOST=0.0.0.0
+      - VITE_PORT=5173
+      - VITE_HMR_HOST=127.0.0.1
+      - VITE_HMR_PORT=5173
+      - CHOKIDAR_USEPOLLING=true
+      - NODE_ENV=development
+      - APP_ENV=local
+      - APP_DEBUG=true
+      - SEED_DB=true
+      - DB_PASSWORD=${DB_PASSWORD:-secret}
+      - DB_ROOT_PASSWORD=${DB_ROOT_PASSWORD:-secret}
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+      - MONGODB_HOST=mongodb
+      - MONGODB_PORT=27017
+      - MONGODB_DATABASE=laravel_news_blog
+    develop:
+      watch:
+        - action: sync
+          path: ./resources
+          target: /var/www/resources
+          ignore:
+            - node_modules/
+            - vendor/
+        - action: sync
+          path: ./public
+          target: /var/www/public
+        - action: sync+restart
+          path: ./routes
+          target: /var/www/routes
+        - action: sync+restart
+          path: ./app
+          target: /var/www/app
+        - action: sync+restart
+          path: ./config
+          target: /var/www/config
+        - action: sync+restart
+          path: ./database
+          target: /var/www/database
+        - action: rebuild
+          path: package.json
+        - action: rebuild
+          path: composer.json
+    networks:
+      - news-blog-network
+    depends_on:
+      mysql:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      mongodb:
+        condition: service_healthy
+
+  soketi:
+    image: quay.io/soketi/soketi:latest-16-alpine
+    container_name: news-blog-soketi
+    restart: unless-stopped
+    ports:
+      - "6001:6001"
+      - "9601:9601"
+    environment:
+      - SOKETI_DEBUG=1
+      - SOKETI_DEFAULT_APP_ID=app-id
+      - SOKETI_DEFAULT_APP_KEY=app-key
+      - SOKETI_DEFAULT_APP_SECRET=app-secret
+    networks:
+      - news-blog-network
+
+  nginx:
+    image: nginx:alpine
+    container_name: news-blog-nginx
+    restart: unless-stopped
+    ports:
+      - "8084:80"
+    volumes:
+      - .:/var/www
+      - ./docker/nginx:/etc/nginx/conf.d
+      - ./storage/app/public:/var/www/public/storage
+    networks:
+      - news-blog-network
+    depends_on:
+      - app
+
+  mysql:
+    image: mysql:8.0
+    container_name: news-blog-mysql
+    restart: unless-stopped
+    environment:
+      MYSQL_DATABASE: laravel_news_blog
+      MYSQL_USER: laravel
+      MYSQL_PASSWORD: ${DB_PASSWORD:-secret}
+      MYSQL_ROOT_PASSWORD: ${DB_ROOT_PASSWORD:-secret}
+    volumes:
+      - mysql-data:/var/lib/mysql
+    ports:
+      - "3307:3306"
+    networks:
+      - news-blog-network
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root", "-p$$MYSQL_ROOT_PASSWORD"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+
+  redis:
+    image: redis:alpine
+    container_name: news-blog-redis
+    restart: unless-stopped
+    command: redis-server --appendonly yes
+    volumes:
+      - redis-data:/data
+    ports:
+      - "6381:6379"
+    networks:
+      - news-blog-network
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+
+  mongodb:
+    image: mongo:latest
+    container_name: news-blog-mongodb
+    restart: unless-stopped
+    environment:
+      MONGO_INITDB_DATABASE: laravel_news_blog
+    volumes:
+      - mongodb-data:/data/db
+    ports:
+      - "27018:27017"
+    networks:
+      - news-blog-network
+    healthcheck:
+      test: ["CMD", "mongosh", "--eval", "db.adminCommand('ping')"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+
+networks:
+  news-blog-network:
+    driver: bridge
+
+volumes:
+  mysql-data:
+    driver: local
+  redis-data:
+    driver: local
+  mongodb-data:
+    driver: local 

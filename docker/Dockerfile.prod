@@ -1,0 +1,73 @@
+# Этап сборки PHP зависимостей
+FROM composer:latest as vendor
+COPY composer.json composer.lock /app/
+RUN composer install --no-dev --no-scripts --no-autoloader --prefer-dist
+
+# Этап сборки Node.js
+FROM node:18 as frontend
+WORKDIR /app
+COPY package*.json ./
+RUN npm ci
+COPY . .
+RUN npm run build
+
+# Финальный этап
+FROM php:8.3-fpm as prod
+
+# Установка системных зависимостей
+RUN apt-get update && apt-get install -y \
+    curl \
+    libpng-dev \
+    libonig-dev \
+    libxml2-dev \
+    zip \
+    unzip \
+    libzip-dev \
+    netcat-openbsd \
+    default-mysql-client \
+    && apt-get clean \
+    && rm -rf /var/lib/apt/lists/*
+
+# Установка PHP расширений
+RUN docker-php-ext-install pdo_mysql mbstring exif pcntl bcmath gd zip opcache
+
+# Установка Redis
+RUN pecl install redis && docker-php-ext-enable redis
+
+# Копирование PHP конфигурации
+COPY docker/php/opcache.ini /usr/local/etc/php/conf.d/opcache.ini
+COPY docker/php/php.prod.ini /usr/local/etc/php/php.ini
+
+# Создание пользователя для приложения
+RUN useradd -G www-data,root -u 1000 -d /home/app app
+RUN mkdir -p /home/app && \
+    chown -R app:app /home/app
+
+# Установка рабочей директории
+WORKDIR /var/www
+
+# Копирование файлов проекта
+COPY --chown=app:app . /var/www
+COPY --from=vendor --chown=app:app /app/vendor /var/www/vendor
+COPY --from=frontend --chown=app:app /app/public/build /var/www/public/build
+
+# Копирование .env файла
+COPY --chown=app:app .env.example /var/www/.env
+
+# Копирование скрипта инициализации
+COPY docker/init.sh /usr/local/bin/init.sh
+RUN chmod +x /usr/local/bin/init.sh
+
+# Оптимизация автозагрузки и очистка кэша
+RUN composer dump-autoload --optimize --no-dev
+
+# Создание директорий и настройка прав
+RUN mkdir -p /var/www/storage/app/public/articles && \
+    chown -R app:www-data /var/www/storage && \
+    chmod -R 775 /var/www/storage
+
+USER app
+
+# Использование скрипта инициализации как точки входа
+ENTRYPOINT ["/usr/local/bin/init.sh"]
+CMD ["php-fpm"] 

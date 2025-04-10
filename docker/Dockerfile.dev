@@ -1,0 +1,101 @@
+FROM php:8.3-fpm as dev
+
+# Установка переменных окружения
+ENV COMPOSER_ALLOW_SUPERUSER=1
+ENV TZ=UTC
+
+# Установка системных зависимостей
+RUN apt-get update && apt-get install -y \
+    git \
+    curl \
+    vim \
+    libpng-dev \
+    libonig-dev \
+    libxml2-dev \
+    libzip-dev \
+    libfreetype-dev \
+    zip \
+    unzip \
+    netcat-openbsd \
+    default-mysql-client \
+    redis-tools \
+    tzdata \
+    libssl-dev \
+    && apt-get clean \
+    && rm -rf /var/lib/apt/lists/*
+
+# Установка PHP расширений
+RUN docker-php-ext-install \
+    pdo \
+    pdo_mysql \
+    mbstring \
+    exif \
+    pcntl \
+    bcmath \
+    soap \
+    intl \
+    && docker-php-ext-configure gd --with-freetype \
+    && docker-php-ext-install gd \
+    && docker-php-ext-configure zip \
+    && docker-php-ext-install zip
+
+# Установка Redis
+RUN pecl install redis && docker-php-ext-enable redis
+
+# Установка MongoDB
+RUN pecl install mongodb \
+    && docker-php-ext-enable mongodb
+
+# Установка Xdebug
+RUN pecl install xdebug \
+    && docker-php-ext-enable xdebug \
+    && echo "xdebug.mode=off" >> /usr/local/etc/php/conf.d/docker-php-ext-xdebug.ini \
+    && echo "xdebug.start_with_request=no" >> /usr/local/etc/php/conf.d/docker-php-ext-xdebug.ini \
+    && echo "xdebug.client_host=host.docker.internal" >> /usr/local/etc/php/conf.d/docker-php-ext-xdebug.ini \
+    && echo "xdebug.client_port=9003" >> /usr/local/etc/php/conf.d/docker-php-ext-xdebug.ini \
+    && echo "xdebug.idekey=PHPSTORM" >> /usr/local/etc/php/conf.d/docker-php-ext-xdebug.ini
+
+# Настройка PHP
+COPY docker/php/php.dev.ini /usr/local/etc/php/php.ini
+
+# Установка Composer
+COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
+
+# Установка Node.js и npm
+RUN curl -fsSL https://deb.nodesource.com/setup_18.x | bash - \
+    && apt-get install -y nodejs \
+    && npm install -g npm
+
+# Создание системного пользователя
+ARG USER_ID=1000
+ARG GROUP_ID=1000
+
+RUN groupadd -g ${GROUP_ID} dev && \
+    useradd -u ${USER_ID} -g dev -s /bin/bash -m dev && \
+    usermod -aG www-data dev
+
+# Установка рабочей директории
+WORKDIR /var/www
+
+# Создание директорий и настройка прав
+RUN mkdir -p /var/www/storage/app/public/articles && \
+    mkdir -p /var/www/storage/framework/{cache,sessions,views} && \
+    mkdir -p /var/www/storage/logs && \
+    chown -R dev:www-data /var/www && \
+    chmod -R 775 /var/www/storage
+
+# Копирование скрипта инициализации
+COPY docker/init.sh /usr/local/bin/init.sh
+RUN chmod +x /usr/local/bin/init.sh
+
+USER dev
+
+# Копирование файлов проекта
+COPY --chown=dev:dev . /var/www/
+
+# Копирование .env файла
+COPY --chown=dev:dev .env.example /var/www/.env
+
+# Точка входа
+ENTRYPOINT ["/usr/local/bin/init.sh"]
+CMD ["php-fpm"] 
