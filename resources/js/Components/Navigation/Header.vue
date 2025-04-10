@@ -44,21 +44,12 @@ const navigation: NavigationItem[] = [
         name: 'Теги', 
         href: route('tags.index'),
         active: (component: string) => component === 'Tags/Index' || component === 'Tags/Show'
-    }
-];
-
-const userNavigation: NavigationItem[] = [
-    { 
-        name: 'Админ панель', 
-        href: route('admin.dashboard'), 
-        show: () => Boolean(user.value?.is_admin),
-        active: () => false
     },
     { 
-        name: 'Выход', 
-        href: route('logout'), 
-        method: 'post',
-        active: () => false
+        name: 'Панель администратора', 
+        href: route('admin.dashboard'),
+        show: () => Boolean(user.value?.is_admin),
+        active: (component: string) => component.startsWith('Admin/')
     }
 ];
 
@@ -98,14 +89,6 @@ declare function route(name: string): string;
                             >
                                 {{ user.name }}
                             </Link>
-                            <template v-if="user.is_admin">
-                                <Link 
-                                    :href="route('admin.dashboard')" 
-                                    class="text-indigo-600 hover:text-indigo-800"
-                                >
-                                    Админ панель
-                                </Link>
-                            </template>
                             <button 
                                 @click="() => router.post(route('logout'))"
                                 class="text-sm text-red-600 hover:text-red-800"
