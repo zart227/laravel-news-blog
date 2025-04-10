@@ -1,32 +1,40 @@
-version: '3.8'
-
+version: '3'
 services:
   app:
     build:
       context: .
-      dockerfile: docker/Dockerfile
+      dockerfile: docker/Dockerfile.prod
+      target: prod
     container_name: news-blog-app
     restart: unless-stopped
     working_dir: /var/www
+    environment:
+      - NODE_ENV=production
+      - APP_ENV=production
+      - APP_DEBUG=false
+      - SEED_DB=${SEED_DB:-false}
+      - DB_PASSWORD=${DB_PASSWORD:-secret}
+      - DB_ROOT_PASSWORD=${DB_ROOT_PASSWORD:-secret}
     volumes:
-      - .:/var/www
-    ports:
-      - "5173:5173"
+      - ./storage:/var/www/storage
     networks:
       - news-blog-network
     depends_on:
-      - mysql
-      - redis
+      mysql:
+        condition: service_healthy
+      redis:
+        condition: service_started
 
   nginx:
     image: nginx:alpine
     container_name: news-blog-nginx
     restart: unless-stopped
     ports:
-      - "8000:80"
+      - "80:80"
     volumes:
-      - .:/var/www
-      - ./docker/nginx:/etc/nginx/conf.d
+      - ./docker/nginx.prod:/etc/nginx/conf.d
+      - ./public:/var/www/public
+      - ./storage/app/public:/var/www/public/storage
     networks:
       - news-blog-network
     depends_on:
@@ -39,23 +47,42 @@ services:
     environment:
       MYSQL_DATABASE: laravel_news_blog
       MYSQL_USER: laravel
-      MYSQL_PASSWORD: secret
-      MYSQL_ROOT_PASSWORD: secret
+      MYSQL_PASSWORD: ${DB_PASSWORD:-secret}
+      MYSQL_ROOT_PASSWORD: ${DB_ROOT_PASSWORD:-secret}
     volumes:
       - mysql-data:/var/lib/mysql
-    ports:
-      - "3307:3306"
     networks:
       - news-blog-network
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root", "-p$$MYSQL_ROOT_PASSWORD"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
 
   redis:
     image: redis:alpine
     container_name: news-blog-redis
     restart: unless-stopped
-    ports:
-      - "6380:6379"
     networks:
       - news-blog-network
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+
+  soketi:
+    image: quay.io/soketi/soketi:latest-16-alpine
+    container_name: news-blog-soketi
+    ports:
+      - "6001:6001"
+      - "9601:9601"
+    environment:
+      SOKETI_DEBUG: '1'
+      SOKETI_DEFAULT_APP_ID: 'app-id'
+      SOKETI_DEFAULT_APP_KEY: 'app-key'
+      SOKETI_DEFAULT_APP_SECRET: 'app-secret'
+      SOKETI_PORT: 6001
 
 networks:
   news-blog-network:
