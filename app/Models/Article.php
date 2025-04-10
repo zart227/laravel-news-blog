@@ -8,10 +8,13 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Str;
+use App\Traits\Likeable;
 
 class Article extends Model
 {
     use HasFactory;
+    use Likeable;
 
     protected $fillable = [
         'title',
@@ -19,6 +22,7 @@ class Article extends Model
         'image_path',
         'status',
         'user_id',
+        'slug',
     ];
 
     protected $appends = ['image_url'];
@@ -27,6 +31,32 @@ class Article extends Model
         'created_at' => 'datetime',
         'updated_at' => 'datetime',
     ];
+
+    /**
+     * Get the route key for the model.
+     */
+    public function getRouteKeyName(): string
+    {
+        return 'slug';
+    }
+
+    /**
+     * Boot the model.
+     */
+    protected static function boot()
+    {
+        parent::boot();
+
+        static::creating(function ($article) {
+            $article->slug = Str::slug($article->title);
+        });
+
+        static::updating(function ($article) {
+            if ($article->isDirty('title')) {
+                $article->slug = Str::slug($article->title);
+            }
+        });
+    }
 
     public function getImageUrlAttribute(): ?string
     {

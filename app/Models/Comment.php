@@ -6,10 +6,12 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use App\Traits\Likeable;
 
 class Comment extends Model
 {
     use HasFactory;
+    use Likeable;
 
     protected $fillable = [
         'content',
@@ -35,6 +37,6 @@ class Comment extends Model
 
     public function replies(): HasMany
     {
-        return $this->hasMany(Comment::class, 'parent_id');
+        return $this->hasMany(Comment::class, 'parent_id')->latest();
     }
 }

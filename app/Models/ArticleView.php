@@ -10,17 +10,10 @@ class ArticleView extends Model
 {
     use HasFactory;
 
-    public $timestamps = false;
-
     protected $fillable = [
         'article_id',
         'user_id',
         'ip_address',
-        'viewed_at',
-    ];
-
-    protected $casts = [
-        'viewed_at' => 'datetime',
     ];
 
     public function article(): BelongsTo
