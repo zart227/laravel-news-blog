@@ -14,23 +14,23 @@
 
                             <!-- Навигационные ссылки -->
                             <div class="hidden space-x-8 sm:-my-px sm:ms-10 sm:flex">
-                                <NavLink :href="route('home')" :active="route().current('home')">
+                                <NavLink :href="route('home')" :active="isCurrentRoute('home')">
                                     Главная
                                 </NavLink>
-                                <NavLink :href="route('articles.index')" :active="route().current('articles.*')">
+                                <NavLink :href="route('articles.index')" :active="routeStartsWith('articles.')">
                                     Статьи
                                 </NavLink>
-                                <NavLink :href="route('tags.index')" :active="route().current('tags.*')">
+                                <NavLink :href="route('tags.index')" :active="routeStartsWith('tags.')">
                                     Теги
                                 </NavLink>
-                                <template v-if="$page.props.auth.user.is_admin">
-                                    <NavLink :href="route('admin.articles.index')" :active="route().current('admin.articles.*')">
+                                <template v-if="page.props.auth.user.is_admin">
+                                    <NavLink :href="route('admin.articles.index')" :active="routeStartsWith('admin.articles.')">
                                         Управление статьями
                                     </NavLink>
-                                    <NavLink :href="route('admin.tags.index')" :active="route().current('admin.tags.*')">
+                                    <NavLink :href="route('admin.tags.index')" :active="routeStartsWith('admin.tags.')">
                                         Управление тегами
                                     </NavLink>
-                                    <NavLink :href="route('admin.statistics')" :active="route().current('admin.statistics')">
+                                    <NavLink :href="route('admin.statistics')" :active="isCurrentRoute('admin.statistics')">
                                         Статистика
                                     </NavLink>
                                 </template>
@@ -47,7 +47,7 @@
                                                 type="button"
                                                 class="inline-flex items-center px-3 py-2 border border-transparent text-sm leading-4 font-medium rounded-md text-gray-500 bg-white hover:text-gray-700 focus:outline-none transition ease-in-out duration-150"
                                             >
-                                                {{ $page.props.auth.user.name }}
+                                                {{ page.props.auth.user.name }}
 
                                                 <svg
                                                     class="ms-2 -me-0.5 h-4 w-4"
@@ -116,23 +116,23 @@
                     class="sm:hidden"
                 >
                     <div class="pt-2 pb-3 space-y-1">
-                        <ResponsiveNavLink :href="route('home')" :active="route().current('home')">
+                        <ResponsiveNavLink :href="route('home')" :active="isCurrentRoute('home')">
                             Главная
                         </ResponsiveNavLink>
-                        <ResponsiveNavLink :href="route('articles.index')" :active="route().current('articles.*')">
+                        <ResponsiveNavLink :href="route('articles.index')" :active="routeStartsWith('articles.')">
                             Статьи
                         </ResponsiveNavLink>
-                        <ResponsiveNavLink :href="route('tags.index')" :active="route().current('tags.*')">
+                        <ResponsiveNavLink :href="route('tags.index')" :active="routeStartsWith('tags.')">
                             Теги
                         </ResponsiveNavLink>
-                        <template v-if="$page.props.auth.user.is_admin">
-                            <ResponsiveNavLink :href="route('admin.articles.index')" :active="route().current('admin.articles.*')">
+                        <template v-if="page.props.auth.user.is_admin">
+                            <ResponsiveNavLink :href="route('admin.articles.index')" :active="routeStartsWith('admin.articles.')">
                                 Управление статьями
                             </ResponsiveNavLink>
-                            <ResponsiveNavLink :href="route('admin.tags.index')" :active="route().current('admin.tags.*')">
+                            <ResponsiveNavLink :href="route('admin.tags.index')" :active="routeStartsWith('admin.tags.')">
                                 Управление тегами
                             </ResponsiveNavLink>
-                            <ResponsiveNavLink :href="route('admin.statistics')" :active="route().current('admin.statistics')">
+                            <ResponsiveNavLink :href="route('admin.statistics')" :active="isCurrentRoute('admin.statistics')">
                                 Статистика
                             </ResponsiveNavLink>
                         </template>
@@ -142,9 +142,9 @@
                     <div class="pt-4 pb-1 border-t border-gray-200">
                         <div class="px-4">
                             <div class="font-medium text-base text-gray-800">
-                                {{ $page.props.auth.user.name }}
+                                {{ page.props.auth.user.name }}
                             </div>
-                            <div class="font-medium text-sm text-gray-500">{{ $page.props.auth.user.email }}</div>
+                            <div class="font-medium text-sm text-gray-500">{{ page.props.auth.user.email }}</div>
                         </div>
 
                         <div class="mt-3 space-y-1">
@@ -176,12 +176,33 @@
 
 <script setup lang="ts">
 import { ref } from 'vue';
+import { Link } from '@inertiajs/vue3';
 import ApplicationLogo from '@/Components/Navigation/ApplicationLogo.vue';
 import Dropdown from '@/Components/Navigation/Dropdown.vue';
 import DropdownLink from '@/Components/Navigation/DropdownLink.vue';
 import NavLink from '@/Components/Navigation/NavLink.vue';
 import ResponsiveNavLink from '@/Components/Navigation/ResponsiveNavLink.vue';
-import { Link } from '@inertiajs/vue3';
+import { usePage } from '@inertiajs/vue3';
 
+interface User {
+  name: string;
+  email: string;
+  is_admin: boolean;
+}
+
+interface CustomPageProps {
+  auth: {
+    user: User;
+  };
+  [key: string]: any;
+}
+
+const page = usePage<CustomPageProps>();
 const showingNavigationDropdown = ref(false);
+
+const isCurrentRoute = (name: string) => route().current() === name;
+const routeStartsWith = (pattern: string) => {
+  const current = route().current();
+  return current ? current.startsWith(pattern) : false;
+};
 </script> 

@@ -12,6 +12,12 @@ interface Props {
   isDisliked?: boolean;
 }
 
+interface LikeResponse {
+  likes_count: number;
+  dislikes_count: number;
+  action: 'liked' | 'disliked' | null;
+}
+
 const props = withDefaults(defineProps<Props>(), {
   isLiked: false,
   isDisliked: false,
@@ -31,10 +37,11 @@ const toggleLike = async () => {
       id: props.id
     });
 
-    if (response.data) {
-      likes.value = response.data.likes_count;
-      dislikes.value = response.data.dislikes_count;
-      isLiked.value = response.data.action === 'liked';
+    const data = response as unknown as LikeResponse;
+    if (data) {
+      likes.value = data.likes_count;
+      dislikes.value = data.dislikes_count;
+      isLiked.value = data.action === 'liked';
       isDisliked.value = false;
     }
   } catch (error) {
@@ -49,10 +56,11 @@ const toggleDislike = async () => {
       id: props.id
     });
 
-    if (response.data) {
-      likes.value = response.data.likes_count;
-      dislikes.value = response.data.dislikes_count;
-      isDisliked.value = response.data.action === 'disliked';
+    const data = response as unknown as LikeResponse;
+    if (data) {
+      likes.value = data.likes_count;
+      dislikes.value = data.dislikes_count;
+      isDisliked.value = data.action === 'disliked';
       isLiked.value = false;
     }
   } catch (error) {

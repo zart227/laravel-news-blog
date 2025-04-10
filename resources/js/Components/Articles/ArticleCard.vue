@@ -3,6 +3,7 @@ import { Link } from '@inertiajs/vue3';
 import { computed } from 'vue';
 import { EyeIcon, ChatBubbleLeftIcon } from '@heroicons/vue/24/outline';
 import LikeButtons from '@/Components/UI/LikeButtons.vue';
+import type { LinkPrefetchOption } from '@inertiajs/core';
 
 interface Article {
     id: number;
@@ -29,7 +30,7 @@ interface Article {
 
 const props = defineProps<{
     article: Article;
-    prefetch?: 'hover' | 'visible' | false;
+    prefetch?: LinkPrefetchOption | false;
 }>();
 
 const truncate = (text: string, length: number): string => {
@@ -62,7 +63,7 @@ const ratingClass = computed(() => {
 <template>
     <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg h-full flex flex-col hover:shadow-md transition-shadow duration-200">
         <Link 
-            :href="route('articles.show', article.slug)"
+            :href="route('articles.show', { slug: article.slug })"
             class="flex-1 flex flex-col"
             :prefetch="prefetch"
         >
@@ -125,7 +126,7 @@ const ratingClass = computed(() => {
                 <Link
                     v-for="tag in article.tags" 
                     :key="tag.id"
-                    :href="route('tags.show', tag.slug)"
+                    :href="route('tags.show', { slug: tag.slug })"
                     class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800 hover:bg-blue-200 transition-colors duration-200"
                     prefetch="hover"
                 >

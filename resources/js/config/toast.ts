@@ -1,7 +1,8 @@
-import { ToastOptions } from 'vue-toastification'
+import { POSITION } from 'vue-toastification';
+import type { PluginOptions } from 'vue-toastification';
 
-export const toastOptions: ToastOptions = {
-    position: 'top-right',
+export const toastOptions: PluginOptions = {
+    position: POSITION.TOP_RIGHT,
     timeout: 3000,
     closeOnClick: true,
     pauseOnFocusLoss: true,
@@ -18,9 +19,8 @@ export const toastOptions: ToastOptions = {
     newestOnTop: true,
     filterBeforeCreate: (toast, toasts) => {
         if (toasts.filter(t => t.type === toast.type).length !== 0) {
-            // Возвращаем null, чтобы предотвратить дублирование уведомлений одного типа
-            return null;
+            return false;
         }
         return toast;
     },
-} 
+}; 

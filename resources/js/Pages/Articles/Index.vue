@@ -30,14 +30,7 @@
           <div ref="loadingTrigger" class="h-20 mt-6"></div>
           <WhenVisible
             v-if="hasMorePages"
-            :params="{
-              data: {
-                page: page.props.articlesPagination.current_page + 1,
-              },
-              only: ['articles', 'articlesPagination'],
-              preserveScroll: true,
-              preserveState: true
-            }"
+            :params="visibleParams"
             :buffer="1000"
           >
             <div class="flex justify-center py-6">
@@ -60,16 +53,27 @@ import { computed, ref, onMounted, watch } from 'vue';
 import AppLayout from '@/Layouts/AppLayout.vue';
 import ArticleCard from '@/Components/Articles/ArticleCard.vue';
 import LoadingSpinner from '@/Components/UI/LoadingSpinner.vue';
+import type { Article, PageProps, ArticlesPagination } from '@/types';
 
-const page = usePage();
-const loadingTrigger = ref(null);
+interface WhenVisibleParams {
+  data: {
+    page: number;
+  };
+  only: string[];
+  preserveState: boolean;
+}
+
+const page = usePage<PageProps>();
+const loadingTrigger = ref<HTMLElement | null>(null);
 
 // Сохраняем все загруженные статьи
-const allArticles = ref([]);
+const allArticles = ref<Article[]>([]);
 
 // При изменении данных статей обновляем массив всех статей
-watch(() => page.props.articles.data, (newArticles) => {
-  if (page.props.articlesPagination.current_page === 1) {
+watch(() => page.props.articles, (newArticles) => {
+  if (!newArticles) return;
+  
+  if (page.props.articlesPagination?.current_page === 1) {
     // Если это первая страница, заменяем весь массив
     allArticles.value = [...newArticles];
   } else {
@@ -86,11 +90,19 @@ const articles = computed(() => {
 });
 
 const hasMorePages = computed(() => {
-    const pagination = page.props.articlesPagination;
-    return pagination && pagination.current_page < pagination.last_page;
+  const pagination = page.props.articlesPagination;
+  return pagination ? pagination.current_page < pagination.last_page : false;
 });
 
 const isFirstPage = computed(() => {
-    return page.props.articlesPagination?.current_page === 1;
+  return page.props.articlesPagination?.current_page === 1;
 });
+
+const visibleParams = computed<WhenVisibleParams>(() => ({
+  data: {
+    page: page.props.articlesPagination?.current_page ? page.props.articlesPagination.current_page + 1 : 1,
+  },
+  only: ['articles', 'articlesPagination'],
+  preserveState: true
+}));
 </script> 

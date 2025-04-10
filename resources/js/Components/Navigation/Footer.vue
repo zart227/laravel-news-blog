@@ -3,10 +3,16 @@ import { Link } from '@inertiajs/vue3';
 import { usePage } from '@inertiajs/vue3';
 import { computed } from 'vue';
 import { route } from 'ziggy-js';
-import type { PageProps } from '@/types/inertia';
 import { h } from 'vue';
 
-const page = usePage<PageProps>();
+interface CustomPageProps {
+    app: {
+        name: string;
+    };
+    [key: string]: any;
+}
+
+const page = usePage<CustomPageProps>();
 const currentYear = new Date().getFullYear();
 const appName = computed(() => page.props.app?.name || 'Laravel News Blog');
 

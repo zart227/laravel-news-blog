@@ -92,7 +92,7 @@
           </div>
           <CommentSection
             :article-slug="article.slug"
-            :current-user="$page.props.auth.user"
+            :current-user="currentUser"
             :initial-comments="comments"
           />
         </div>
@@ -102,13 +102,13 @@
 </template>
 
 <script setup lang="ts">
-import { Head } from '@inertiajs/vue3';
+import { Head, usePage } from '@inertiajs/vue3';
 import { computed } from 'vue';
 import AppLayout from '@/Layouts/AppLayout.vue';
 import CommentSection from '@/Components/Comments/CommentSection.vue';
 import LikeButtons from '@/Components/UI/LikeButtons.vue';
 import { EyeIcon, ChatBubbleLeftIcon } from '@heroicons/vue/24/outline';
-import type { Article, Comment } from '@/types';
+import type { Article, Comment, PageProps, User } from '@/types';
 
 interface Props {
   article: Article;
@@ -117,6 +117,10 @@ interface Props {
 }
 
 const props = defineProps<Props>();
+const page = usePage<PageProps>();
+
+// Вычисляемое свойство для текущего пользователя
+const currentUser = computed<User | null>(() => page.props.auth.user);
 
 const rating = computed(() => {
   return (props.article.likes_count || 0) - (props.article.dislikes_count || 0);
@@ -141,7 +145,7 @@ const formatDate = (date: string) => {
 };
 </script>
 
-<style>
+<style lang="postcss">
 .prose {
   @apply text-gray-800 leading-relaxed;
 }

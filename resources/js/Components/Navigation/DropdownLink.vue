@@ -31,12 +31,15 @@
 
 <script setup lang="ts">
 import { Link } from '@inertiajs/vue3';
+import type { Method } from '@inertiajs/core';
 
-defineProps<{
-    href?: string;
-    method?: string;
+interface Props {
+    href: string;
+    method?: Method;
     as?: string;
-}>();
+}
+
+defineProps<Props>();
 
 defineEmits(['click']);
 </script> 

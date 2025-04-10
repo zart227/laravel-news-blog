@@ -5,8 +5,26 @@ import { computed } from 'vue';
 import { usePage } from '@inertiajs/vue3';
 import NavLink from '@/Components/Navigation/NavLink.vue';
 import { router } from '@inertiajs/core';
-import type { PageProps } from '@/types/inertia';
-import { h } from 'vue';
+
+interface User {
+    name: string;
+    is_admin: boolean;
+}
+
+interface CustomPageProps {
+    auth: {
+        user: User | null;
+    };
+    app: {
+        name: string;
+    };
+    [key: string]: any;
+}
+
+const page = usePage<CustomPageProps>();
+const user = computed(() => page.props.auth?.user);
+const appName = computed(() => page.props.app?.name || 'Laravel News Blog');
+const currentComponent = computed(() => page.component);
 
 interface NavigationItem {
     name: string;
@@ -15,11 +33,6 @@ interface NavigationItem {
     method?: string;
     active: (component: string) => boolean;
 }
-
-const page = usePage<PageProps>();
-const user = computed(() => page.props.auth?.user);
-const appName = computed(() => page.props.app?.name || 'Laravel News Blog');
-const currentComponent = computed(() => page.component);
 
 const navigation: NavigationItem[] = [
     { 
@@ -31,38 +44,14 @@ const navigation: NavigationItem[] = [
         name: 'Теги', 
         href: route('tags.index'),
         active: (component: string) => component === 'Tags/Index' || component === 'Tags/Show'
-    },
-    { 
-        name: 'Управление статьями', 
-        href: route('admin.articles.index'),
-        show: () => user.value?.role === 'admin',
-        active: (component: string) => component.startsWith('Admin/Articles')
-    },
-    { 
-        name: 'Управление тегами', 
-        href: route('admin.tags.index'),
-        show: () => user.value?.role === 'admin',
-        active: (component: string) => component.startsWith('Admin/Tags')
-    },
-    { 
-        name: 'Статистика', 
-        href: route('admin.statistics'),
-        show: () => user.value?.role === 'admin',
-        active: (component: string) => component === 'Admin/Statistics'
-    },
-    { 
-        name: 'Профиль', 
-        href: route('profile.edit'),
-        show: () => !!user.value,
-        active: (component: string) => component === 'Profile/Edit'
     }
 ];
 
 const userNavigation: NavigationItem[] = [
     { 
         name: 'Админ панель', 
-        href: route('admin.articles.index'), 
-        show: () => user.value?.role === 'admin',
+        href: route('admin.dashboard'), 
+        show: () => Boolean(user.value?.is_admin),
         active: () => false
     },
     { 
@@ -109,6 +98,14 @@ declare function route(name: string): string;
                             >
                                 {{ user.name }}
                             </Link>
+                            <template v-if="user.is_admin">
+                                <Link 
+                                    :href="route('admin.dashboard')" 
+                                    class="text-indigo-600 hover:text-indigo-800"
+                                >
+                                    Админ панель
+                                </Link>
+                            </template>
                             <button 
                                 @click="() => router.post(route('logout'))"
                                 class="text-sm text-red-600 hover:text-red-800"

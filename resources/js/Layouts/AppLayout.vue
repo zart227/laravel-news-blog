@@ -6,17 +6,28 @@ import { route } from 'ziggy-js';
 import ApplicationLogo from '@/Components/Navigation/ApplicationLogo.vue';
 import NavLink from '@/Components/Navigation/NavLink.vue';
 import Footer from '@/Components/Navigation/Footer.vue';
-import type { PageProps } from '@/types/inertia';
 import DropdownLink from '@/Components/Navigation/DropdownLink.vue';
+
+interface User {
+  name: string;
+  is_admin: boolean;
+}
+
+interface CustomPageProps {
+  auth: {
+    user: User | null;
+  };
+  [key: string]: any;
+}
 
 interface Props {
   title?: string;
 }
 
 const props = defineProps<Props>();
-const page = usePage<PageProps>();
+const page = usePage<CustomPageProps>();
 
-const isAdmin = computed(() => page.props.auth.user?.role === 'admin');
+const isAdmin = computed(() => page.props.auth.user?.is_admin ?? false);
 const currentRoute = computed(() => route().current() || '');
 
 const isCurrentRoute = (routeName: string) => currentRoute.value === routeName;
