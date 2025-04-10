@@ -8,7 +8,7 @@ import { router } from '@inertiajs/core';
 
 interface User {
     name: string;
-    is_admin: boolean;
+    isAdmin: boolean;
 }
 
 interface CustomPageProps {
@@ -48,7 +48,7 @@ const navigation: NavigationItem[] = [
     { 
         name: 'Панель администратора', 
         href: route('admin.dashboard'),
-        show: () => Boolean(user.value?.is_admin),
+        show: () => Boolean(user.value?.isAdmin),
         active: (component: string) => component.startsWith('Admin/')
     }
 ];
