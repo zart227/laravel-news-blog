@@ -23,14 +23,14 @@ class CommentUpdated implements ShouldBroadcast
     public function broadcastOn(): array
     {
         return [
-            new Channel('article.' . $this->comment->article_id),
+            new Channel('article.' . $this->comment->article->slug),
         ];
     }
 
     public function broadcastWith(): array
     {
         return [
-            'comment' => $this->comment->load(['user', 'parent.user']),
+            'comment' => $this->comment->load(['user', 'parent.user', 'article']),
         ];
     }
 } 

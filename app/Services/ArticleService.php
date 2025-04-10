@@ -14,9 +14,9 @@ class ArticleService
 
     public function getArticles(array $filters = [], int $perPage = 10): LengthAwarePaginator
     {
-        $cacheKey = 'articles:' . md5(json_encode($filters) . $perPage);
+        $cacheKey = 'articles:all';
 
-        return Cache::tags(['articles', 'statistics'])->remember($cacheKey, self::CACHE_TTL, function () use ($filters, $perPage) {
+        return Cache::remember($cacheKey, self::CACHE_TTL, function () use ($filters, $perPage) {
             $query = Article::query()
                 ->with(['user', 'tags'])
                 ->latest();
@@ -36,7 +36,7 @@ class ArticleService
     {
         $cacheKey = 'article:' . $id;
 
-        return Cache::tags(['articles', 'statistics'])->remember($cacheKey, self::CACHE_TTL, function () use ($id) {
+        return Cache::remember($cacheKey, self::CACHE_TTL, function () use ($id) {
             return Article::with(['user', 'tags', 'comments.user'])->findOrFail($id);
         });
     }
@@ -47,7 +47,7 @@ class ArticleService
             $article = Article::create([
                 'title' => $data['title'],
                 'content' => $data['content'],
-                'image_path' => $data['image'] ?? null,
+                'image_path' => $data['image_path'] ?? null,
                 'user_id' => auth()->id(),
                 'status' => $data['status'] ?? 'draft'
             ]);
@@ -56,7 +56,7 @@ class ArticleService
                 $article->tags()->sync($data['tags']);
             }
 
-            $this->clearCache();
+            $this->clearCache($article);
 
             return $article->load(['user', 'tags']);
         });
@@ -68,7 +68,7 @@ class ArticleService
             $article->update([
                 'title' => $data['title'],
                 'content' => $data['content'],
-                'image_path' => $data['image'] ?? $article->image_path,
+                'image_path' => $data['image_path'] ?? $article->image_path,
                 'status' => $data['status'] ?? $article->status
             ]);
 
@@ -76,7 +76,7 @@ class ArticleService
                 $article->tags()->sync($data['tags']);
             }
 
-            $this->clearCache();
+            $this->clearCache($article);
 
             return $article->load(['user', 'tags']);
         });
@@ -85,13 +85,16 @@ class ArticleService
     public function deleteArticle(Article $article): void
     {
         DB::transaction(function () use ($article) {
+            $this->clearCache($article);
             $article->delete();
-            $this->clearCache();
         });
     }
 
-    protected function clearCache(): void
+    protected function clearCache(?Article $article = null): void
     {
-        Cache::tags(['articles', 'statistics'])->flush();
+        Cache::forget('articles:all');
+        if ($article) {
+            Cache::forget('article:' . $article->id);
+        }
     }
 } 

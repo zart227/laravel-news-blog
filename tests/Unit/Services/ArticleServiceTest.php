@@ -24,13 +24,16 @@ class ArticleServiceTest extends TestCase
         $this->articleService = app(ArticleService::class);
         $this->user = User::factory()->create();
         $this->actingAs($this->user);
+
+        // Очищаем кэш перед каждым тестом
+        Cache::flush();
     }
 
     public function test_it_can_get_articles_with_cache()
     {
         // Arrange
         Article::factory()->count(5)->create();
-        $cacheKey = 'articles:' . md5(json_encode([]) . 10);
+        $cacheKey = 'articles:all';
         
         // Act
         $articles = $this->articleService->getArticles();
@@ -75,6 +78,7 @@ class ArticleServiceTest extends TestCase
         $data = [
             'title' => 'New Article',
             'content' => 'Article content',
+            'image_path' => 'articles/test.jpg',
             'tags' => [$tag->id]
         ];
         
@@ -84,7 +88,8 @@ class ArticleServiceTest extends TestCase
         // Assert
         $this->assertDatabaseHas('articles', [
             'title' => 'New Article',
-            'content' => 'Article content'
+            'content' => 'Article content',
+            'image_path' => 'articles/test.jpg'
         ]);
         $this->assertTrue($article->tags->contains($tag));
     }
@@ -97,6 +102,7 @@ class ArticleServiceTest extends TestCase
         $data = [
             'title' => 'Updated Title',
             'content' => 'Updated content',
+            'image_path' => 'articles/updated.jpg',
             'tags' => [$tag->id]
         ];
         
@@ -106,6 +112,7 @@ class ArticleServiceTest extends TestCase
         // Assert
         $this->assertEquals('Updated Title', $updatedArticle->title);
         $this->assertEquals('Updated content', $updatedArticle->content);
+        $this->assertEquals('articles/updated.jpg', $updatedArticle->image_path);
         $this->assertTrue($updatedArticle->tags->contains($tag));
     }
 

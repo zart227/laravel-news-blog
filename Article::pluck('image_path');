@@ -1,0 +1,185 @@
+[90m= [39m[34;4mIlluminate\Database\Eloquent\Collection[39;24m {#6352
+    [34mall[39m: [
+      [34;4mApp\Models\Article[39;24m {#6362
+        [34mid[39m: [35m1[39m,
+        [34mtitle[39m: "[32mAb placeat aperiam recusandae similique dolorem mollitia modi.[39m",
+        [34mcontent[39m: """
+          [32mDoloribus iste autem aperiam velit error non. Voluptates ut hic fugit in sapiente rem. Voluptatem corporis facere enim expedita. Qui veritatis consequatur mollitia voluptate voluptas qui.[39m\n
+          \n
+          [32mPariatur et voluptas non et. Ea et provident sequi ex. Quis dolor sunt animi maiores.[39m\n
+          \n
+          [32mConsequatur eum est porro sint error. Qui eum rerum voluptate iste vitae et. Ut quos ea ea sunt hic delectus. Aut delectus magnam hic explicabo ut illo quis.[39m
+          """,
+        [34mimage_path[39m: "[32ma2a0f6e7-fd1c-3b65-a424-630fe98bc30e.jpg[39m",
+        [34mstatus[39m: "[32mdraft[39m",
+        [34muser_id[39m: [35m1[39m,
+        [34mcreated_at[39m: "[32m2024-05-31 19:47:50[39m",
+        [34mupdated_at[39m: "[32m2025-04-01 07:00:51[39m",
+        [34mslug[39m: "[32mab-placeat-aperiam-recusandae-similique-dolorem-mollitia-modi[39m",
+        +[1mimage_url[22m: "[32mhttp://127.0.0.1:8000/storage/a2a0f6e7-fd1c-3b65-a424-630fe98bc30e.jpg[39m",
+      },
+      [34;4mApp\Models\Article[39;24m {#6363
+        [34mid[39m: [35m2[39m,
+        [34mtitle[39m: "[32mBeatae aut ipsum facere cum sit reprehenderit quis.[39m",
+        [34mcontent[39m: """
+          [32mRerum qui eaque dolores suscipit. Non et est quod ipsa sit.[39m\n
+          \n
+          [32mSunt quidem voluptatibus quos dignissimos sed numquam. Eaque optio delectus est enim voluptatem voluptas. Dolores iste temporibus tenetur quisquam ea praesentium nemo. Totam iure qui eius iure.[39m\n
+          \n
+          [32mSit et cum animi ut repellat in. Voluptatem fuga consequatur ea rem consequatur eum autem quia. Reprehenderit rerum a alias pariatur nulla magni qui.[39m
+          """,
+        [34mimage_path[39m: "[32m14bce292-26d5-3085-adea-d944c9b14cb5.jpg[39m",
+        [34mstatus[39m: "[32mdraft[39m",
+        [34muser_id[39m: [35m1[39m,
+        [34mcreated_at[39m: "[32m2024-04-28 07:03:10[39m",
+        [34mupdated_at[39m: "[32m2025-04-01 07:00:51[39m",
+        [34mslug[39m: "[32mbeatae-aut-ipsum-facere-cum-sit-reprehenderit-quis[39m",
+        +[1mimage_url[22m: "[32mhttp://127.0.0.1:8000/storage/14bce292-26d5-3085-adea-d944c9b14cb5.jpg[39m",
+      },
+      [34;4mApp\Models\Article[39;24m {#6364
+        [34mid[39m: [35m3[39m,
+        [34mtitle[39m: "[32mLaboriosam et et veniam et quos.[39m",
+        [34mcontent[39m: """
+          [32mUt harum et debitis. Esse quibusdam nihil eius. Id itaque ratione saepe. Voluptates aut mollitia tenetur sint. Ipsa sapiente dolor aliquam minima.[39m\n
+          \n
+          [32mAut odio aut est. Velit delectus placeat quidem in.[39m\n
+          \n
+          [32mOptio sint non dolor laborum. Enim tempore ut perspiciatis ut. Maxime ut praesentium corrupti et laudantium numquam. Asperiores voluptas facilis voluptas ut.[39m
+          """,
+        [34mimage_path[39m: "[32mab714510-8de9-3f42-bdba-eecd96e8f25c.jpg[39m",
+        [34mstatus[39m: "[32mdraft[39m",
+        [34muser_id[39m: [35m1[39m,
+        [34mcreated_at[39m: "[32m2024-07-26 09:21:16[39m",
+        [34mupdated_at[39m: "[32m2025-04-01 07:00:51[39m",
+        [34mslug[39m: "[32mlaboriosam-et-et-veniam-et-quos[39m",
+        +[1mimage_url[22m: "[32mhttp://127.0.0.1:8000/storage/ab714510-8de9-3f42-bdba-eecd96e8f25c.jpg[39m",
+      },
+      [34;4mApp\Models\Article[39;24m {#6365
+        [34mid[39m: [35m4[39m,
+        [34mtitle[39m: "[32mCorrupti esse optio a deleniti.[39m",
+        [34mcontent[39m: """
+          [32mEt id eligendi accusamus explicabo sed. Magni et consequuntur delectus sit quia eveniet. Sit et a corrupti porro vitae aut illum. Voluptatibus blanditiis sapiente repellat.[39m\n
+          \n
+          [32mSunt maiores non ex blanditiis quos voluptas. Qui ullam commodi blanditiis impedit officia velit et sed. Sunt deleniti sed consequuntur sit quidem nemo quasi fugit.[39m\n
+          \n
+          [32mQuia impedit mollitia praesentium est et. Iusto fuga laboriosam aliquid nostrum. Minima et ratione est eum. Assumenda corporis accusantium aut.[39m
+          """,
+        [34mimage_path[39m: "[32m3923f6f7-8e13-364b-8ab4-9da14d42e536.jpg[39m",
+        [34mstatus[39m: "[32mpublished[39m",
+        [34muser_id[39m: [35m1[39m,
+        [34mcreated_at[39m: "[32m2024-11-01 08:08:30[39m",
+        [34mupdated_at[39m: "[32m2025-04-01 07:00:51[39m",
+        [34mslug[39m: "[32mcorrupti-esse-optio-a-deleniti[39m",
+        +[1mimage_url[22m: "[32mhttp://127.0.0.1:8000/storage/3923f6f7-8e13-364b-8ab4-9da14d42e536.jpg[39m",
+      },
+      [34;4mApp\Models\Article[39;24m {#6366
+        [34mid[39m: [35m5[39m,
+        [34mtitle[39m: "[32mDolores deleniti quidem soluta repudiandae tenetur et sint.[39m",
+        [34mcontent[39m: """
+          [32mError eum itaque nam voluptatem illum eum. Fugit accusantium voluptatibus est rerum officiis quia maiores. Qui aliquid delectus sequi dolor quia.[39m\n
+          \n
+          [32mId accusantium et quam dolorum necessitatibus. Doloribus voluptates provident quas blanditiis accusamus.[39m\n
+          \n
+          [32mQuis ut veniam reiciendis omnis ut. Consequatur soluta consectetur fugiat eligendi at. Sint voluptatum doloremque voluptates.[39m
+          """,
+        [34mimage_path[39m: "[32m3c538379-cc43-3eed-b366-4273dfc54812.jpg[39m",
+        [34mstatus[39m: "[32mpublished[39m",
+        [34muser_id[39m: [35m1[39m,
+        [34mcreated_at[39m: "[32m2024-11-25 01:30:50[39m",
+        [34mupdated_at[39m: "[32m2025-04-01 07:00:51[39m",
+        [34mslug[39m: "[32mdolores-deleniti-quidem-soluta-repudiandae-tenetur-et-sint[39m",
+        +[1mimage_url[22m: "[32mhttp://127.0.0.1:8000/storage/3c538379-cc43-3eed-b366-4273dfc54812.jpg[39m",
+      },
+      [34;4mApp\Models\Article[39;24m {#6317
+        [34mid[39m: [35m6[39m,
+        [34mtitle[39m: "[32mQuia eveniet quod reprehenderit quam.[39m",
+        [34mcontent[39m: """
+          [32mSit illo harum voluptas corporis explicabo. Non perferendis et maiores eum ex. Aut nulla doloribus ea ab. Et enim sunt enim nulla corporis totam aut.[39m\n
+          \n
+          [32mLabore minima eos aut accusantium. Ducimus non architecto quam eligendi amet quis. Quis nam enim omnis amet adipisci eligendi qui. Magnam assumenda sit ut ipsa.[39m\n
+          \n
+          [32mEt est quisquam ea magnam. Deserunt fugiat dicta blanditiis veniam recusandae. Ducimus fugit dolorem velit minus pariatur corporis sit. Praesentium omnis commodi quam blanditiis exercitationem. Iusto fuga magnam fugit molestiae facere non sed.[39m
+          """,
+        [34mimage_path[39m: "[32m0e62d892-5161-39e2-a26b-d47e110bcddb.jpg[39m",
+        [34mstatus[39m: "[32mpublished[39m",
+        [34muser_id[39m: [35m1[39m,
+        [34mcreated_at[39m: "[32m2025-01-28 10:36:18[39m",
+        [34mupdated_at[39m: "[32m2025-04-01 07:00:51[39m",
+        [34mslug[39m: "[32mquia-eveniet-quod-reprehenderit-quam[39m",
+        +[1mimage_url[22m: "[32mhttp://127.0.0.1:8000/storage/0e62d892-5161-39e2-a26b-d47e110bcddb.jpg[39m",
+      },
+      [34;4mApp\Models\Article[39;24m {#6318
+        [34mid[39m: [35m7[39m,
+        [34mtitle[39m: "[32mExplicabo laudantium dignissimos ipsum quam.[39m",
+        [34mcontent[39m: """
+          [32mNam nulla perspiciatis repellat reprehenderit officia veritatis sint ab. Temporibus ex et est minima. Expedita dolor enim aut dolor. Qui soluta architecto voluptatem vero ipsam voluptatibus aut sapiente.[39m\n
+          \n
+          [32mQui et aut dolorem numquam non. Provident aliquid minima quo ut. Repudiandae enim non facere quidem illo voluptatem. Mollitia qui ab qui.[39m\n
+          \n
+          [32mEius sit molestias omnis quia. Voluptas exercitationem perferendis sit modi eius quaerat reprehenderit. Aut iste praesentium dolorem magni.[39m
+          """,
+        [34mimage_path[39m: "[32mb9cd6264-4232-3f94-9454-c1d032dc50d4.jpg[39m",
+        [34mstatus[39m: "[32mdraft[39m",
+        [34muser_id[39m: [35m1[39m,
+        [34mcreated_at[39m: "[32m2025-02-24 09:03:51[39m",
+        [34mupdated_at[39m: "[32m2025-04-01 07:00:51[39m",
+        [34mslug[39m: "[32mexplicabo-laudantium-dignissimos-ipsum-quam[39m",
+        +[1mimage_url[22m: "[32mhttp://127.0.0.1:8000/storage/b9cd6264-4232-3f94-9454-c1d032dc50d4.jpg[39m",
+      },
+      [34;4mApp\Models\Article[39;24m {#6319
+        [34mid[39m: [35m8[39m,
+        [34mtitle[39m: "[32mEt asperiores ducimus sed qui.[39m",
+        [34mcontent[39m: """
+          [32mVelit placeat est quia optio. Et ea ullam ducimus inventore. Et molestias beatae ut voluptatem. Perspiciatis quis ea hic.[39m\n
+          \n
+          [32mVeritatis dicta et ad repudiandae est et. Sit rerum repellendus eum facere amet sit harum maxime. Necessitatibus vitae adipisci officia porro harum veniam ea voluptatibus. Distinctio quia sed dolor qui. Recusandae ab id perspiciatis nesciunt voluptatem totam quis.[39m\n
+          \n
+          [32mQuam commodi nemo ab amet sit magnam. Accusamus sunt enim et expedita maiores. Enim occaecati sed accusamus numquam officiis. Aut rerum quibusdam error.[39m
+          """,
+        [34mimage_path[39m: "[32m9afb2dd7-32ed-3b38-822b-ac8082c0df11.jpg[39m",
+        [34mstatus[39m: "[32mdraft[39m",
+        [34muser_id[39m: [35m1[39m,
+        [34mcreated_at[39m: "[32m2024-06-27 00:31:10[39m",
+        [34mupdated_at[39m: "[32m2025-04-01 07:00:51[39m",
+        [34mslug[39m: "[32met-asperiores-ducimus-sed-qui[39m",
+        +[1mimage_url[22m: "[32mhttp://127.0.0.1:8000/storage/9afb2dd7-32ed-3b38-822b-ac8082c0df11.jpg[39m",
+      },
+      [34;4mApp\Models\Article[39;24m {#6320
+        [34mid[39m: [35m9[39m,
+        [34mtitle[39m: "[32mDolores aut ipsa ullam porro et quaerat enim.[39m",
+        [34mcontent[39m: """
+          [32mEligendi non ut libero quo tempore molestiae. Ratione odit sint repudiandae pariatur. Voluptatibus dolores vel enim consequatur vel dolore.[39m\n
+          \n
+          [32mQuae eaque voluptas hic repellat commodi odio. Soluta dolores temporibus error et ipsum. Sit ut minus sed dolorum voluptatum.[39m\n
+          \n
+          [32mMolestias minima qui accusantium. Veniam iusto dolorem esse quis similique aut eligendi voluptatum. Quis consequatur nihil consequatur. Ut nisi facere nulla quia sunt corporis unde qui.[39m
+          """,
+        [34mimage_path[39m: "[32m535980a0-3239-3193-960a-8ebac48ff7db.jpg[39m",
+        [34mstatus[39m: "[32mpublished[39m",
+        [34muser_id[39m: [35m1[39m,
+        [34mcreated_at[39m: "[32m2024-04-04 22:28:04[39m",
+        [34mupdated_at[39m: "[32m2025-04-01 07:00:51[39m",
+        [34mslug[39m: "[32mdolores-aut-ipsa-ullam-porro-et-quaerat-enim[39m",
+        +[1mimage_url[22m: "[32mhttp://127.0.0.1:8000/storage/535980a0-3239-3193-960a-8ebac48ff7db.jpg[39m",
+      },
+      [34;4mApp\Models\Article[39;24m {#6321
+        [34mid[39m: [35m10[39m,
+        [34mtitle[39m: "[32mCorporis veritatis eius totam quod est.[39m",
+        [34mcontent[39m: """
+          [32mDolore molestiae hic a. Nisi temporibus voluptate cupiditate a deleniti tempore reprehenderit. Voluptates ex accusamus impedit officia. Libero ut sed beatae nulla animi doloremque voluptatem quia.[39m\n
+          \n
+          [32mAut optio quia vel dolores. Id blanditiis omnis iste modi consequatur eos adipisci. Recusandae et enim voluptates nemo sit qui reiciendis.[39m\n
+          \n
+          [32mCumque distinctio tempore praesentium dolores aut totam nostrum rem. Assumenda ut praesentium dolores voluptas. Nobis est voluptatem explicabo quisquam nulla. Iste voluptas est nihil est.[39m
+          """,
+        [34mimage_path[39m: "[32m360ec81f-2b14-3cfd-9e15-140c6122e34d.jpg[39m",
+        [34mstatus[39m: "[32mdraft[39m",
+        [34muser_id[39m: [35m1[39m,
+        [34mcreated_at[39m: "[32m2024-10-25 08:21:35[39m",
+        [34mupdated_at[39m: "[32m2025-04-01 07:00:51[39m",
+        [34mslug[39m: "[32mcorporis-veritatis-eius-totam-quod-est[39m",
+        +[1mimage_url[22m: "[32mhttp://127.0.0.1:8000/storage/360ec81f-2b14-3cfd-9e15-140c6122e34d.jpg[39m",
+      },
+    ],
+  }
+
