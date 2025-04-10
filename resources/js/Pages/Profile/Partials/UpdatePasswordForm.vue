@@ -11,6 +11,12 @@
         </header>
 
         <form @submit.prevent="form.put(route('password.update'))" class="mt-6 space-y-6">
+            <input type="text" 
+                   class="hidden" 
+                   name="username" 
+                   :value="userEmail" 
+                   autocomplete="username" />
+
             <div>
                 <InputLabel for="current_password" value="Текущий пароль" />
                 <TextInput
@@ -66,15 +72,28 @@
 </template>
 
 <script setup lang="ts">
-import { useForm } from '@inertiajs/vue3';
+import { useForm, usePage } from '@inertiajs/vue3';
 import InputError from '@/Components/UI/InputError.vue';
 import InputLabel from '@/Components/UI/InputLabel.vue';
 import PrimaryButton from '@/Components/UI/PrimaryButton.vue';
 import TextInput from '@/Components/UI/TextInput.vue';
 import { ref } from 'vue';
+import type { User } from '@/types/models';
+import type { PageProps as InertiaPageProps } from '@inertiajs/core';
+
+interface CustomPageProps {
+    auth: {
+        user: User | null;
+    };
+}
+
+type PageProps = InertiaPageProps & CustomPageProps;
 
 const currentPasswordInput = ref<HTMLInputElement>();
 const passwordInput = ref<HTMLInputElement>();
+
+const page = usePage<PageProps>();
+const userEmail = page.props.auth.user?.email ?? '';
 
 const form = useForm({
     current_password: '',
