@@ -1,7 +1,7 @@
 <template>
   <Head title="Статьи" />
 
-  <AppLayout>
+  <AppLayout title="Статьи">
     <template #header>
       <h2 class="font-semibold text-xl text-gray-800 leading-tight">
         Статьи
@@ -10,79 +10,87 @@
 
     <div class="py-12">
       <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
-        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          <div v-for="article in articles.data" :key="article.id" 
-               class="bg-white overflow-hidden shadow-sm sm:rounded-lg">
-            <img v-if="article.image_url" 
-                 :src="article.image_url" 
-                 :alt="article.title" 
-                 class="w-full h-48 object-cover">
-            <div class="p-6">
-              <h2 class="text-xl font-semibold mb-2">
-                <Link :href="route('articles.show', article.id)" 
-                      class="hover:text-blue-600">
-                  {{ article.title }}
-                </Link>
-              </h2>
-              <p class="text-gray-600 mb-4">
-                {{ truncate(article.content, 150) }}
-              </p>
-              <div class="flex items-center justify-between">
-                <div class="flex items-center">
-                  <span class="text-sm text-gray-600">
-                    {{ article.user.name }}
-                  </span>
-                </div>
-                <span class="text-sm text-gray-500">
-                  {{ formatDate(article.created_at) }}
-                </span>
-              </div>
-              <div class="mt-2 flex flex-wrap gap-2">
-                <span v-for="tag in article.tags" 
-                      :key="tag.id"
-                      class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
-                  {{ tag.name }}
-                </span>
-              </div>
-            </div>
+        <div class="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
+          <div v-for="article in articles" 
+               :key="article.id" 
+               class="relative flex flex-col">
+            <ArticleCard 
+              :article="article" 
+              prefetch="hover"
+            />
           </div>
         </div>
 
-        <div v-if="articles.data.length === 0" 
-             class="text-center text-gray-600 mt-8">
+        <!-- Индикатор загрузки и конца списка -->
+        <div v-if="isFirstPage && articles.length === 0" 
+             class="text-center py-6 text-gray-600">
           Статьи не найдены
         </div>
-
-        <div v-if="articles.links" class="mt-8">
-          <Pagination :links="articles.links" />
+        <div v-else>
+          <div ref="loadingTrigger" class="h-20 mt-6"></div>
+          <WhenVisible
+            v-if="hasMorePages"
+            :params="{
+              data: {
+                page: page.props.articlesPagination.current_page + 1,
+              },
+              only: ['articles', 'articlesPagination'],
+              preserveScroll: true,
+              preserveState: true
+            }"
+            :buffer="1000"
+          >
+            <div class="flex justify-center py-6">
+              <LoadingSpinner />
+            </div>
+          </WhenVisible>
+          <div v-if="!hasMorePages && articles.length > 0"
+               class="text-center py-6 text-gray-600">
+            Вы достигли конца списка
+          </div>
         </div>
       </div>
     </div>
   </AppLayout>
 </template>
 
-<script setup>
-import { Head, Link } from '@inertiajs/vue3';
+<script setup lang="ts">
+import { Head, usePage, WhenVisible } from '@inertiajs/vue3';
+import { computed, ref, onMounted, watch } from 'vue';
 import AppLayout from '@/Layouts/AppLayout.vue';
-import Pagination from '@/Components/Pagination.vue';
+import ArticleCard from '@/Components/Articles/ArticleCard.vue';
+import LoadingSpinner from '@/Components/UI/LoadingSpinner.vue';
 
-const props = defineProps({
-    articles: {
-        type: Object,
-        required: true
-    }
+const page = usePage();
+const loadingTrigger = ref(null);
+
+// Сохраняем все загруженные статьи
+const allArticles = ref([]);
+
+// При изменении данных статей обновляем массив всех статей
+watch(() => page.props.articles.data, (newArticles) => {
+  if (page.props.articlesPagination.current_page === 1) {
+    // Если это первая страница, заменяем весь массив
+    allArticles.value = [...newArticles];
+  } else {
+    // Иначе добавляем новые статьи в конец массива
+    const newArticleIds = new Set(newArticles.map(a => a.id));
+    const uniqueNewArticles = newArticles.filter(a => !allArticles.value.some(existing => existing.id === a.id));
+    allArticles.value = [...allArticles.value, ...uniqueNewArticles];
+  }
+}, { immediate: true });
+
+// Используем вычисляемый массив для отображения статей
+const articles = computed(() => {
+  return allArticles.value;
 });
 
-const truncate = (text, length) => {
-    if (!text) return '';
-    return text.length > length ? text.substring(0, length) + '...' : text;
-};
+const hasMorePages = computed(() => {
+    const pagination = page.props.articlesPagination;
+    return pagination && pagination.current_page < pagination.last_page;
+});
 
-const formatDate = (date) => {
-    return new Date(date).toLocaleDateString('ru-RU', {
-        year: 'numeric',
-        month: 'long',
-        day: 'numeric'
-    });
-};
+const isFirstPage = computed(() => {
+    return page.props.articlesPagination?.current_page === 1;
+});
 </script> 
