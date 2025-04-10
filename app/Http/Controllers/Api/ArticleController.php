@@ -4,10 +4,17 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use App\Models\Article;
+use App\Models\Tag;
+use App\Traits\HandlesErrors;
+use App\Http\Requests\ArticleRequest;
+use App\Services\ArticleService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
+use Illuminate\Foundation\Validation\ValidatesRequests;
+use Illuminate\Routing\Controller as BaseController;
 
 /**
  * @OA\Info(
@@ -26,8 +33,18 @@ use Illuminate\Http\JsonResponse;
  *     description="API эндпоинты для работы со статьями"
  * )
  */
-class ArticleController extends Controller
+class ArticleController extends BaseController
 {
+    use AuthorizesRequests, ValidatesRequests, HandlesErrors;
+
+    protected $articleService;
+
+    public function __construct(ArticleService $articleService)
+    {
+        $this->authorizeResource(Article::class, 'article');
+        $this->articleService = $articleService;
+    }
+
     /**
      * @OA\Get(
      *     path="/api/articles",
@@ -69,11 +86,40 @@ class ArticleController extends Controller
      */
     public function index(): JsonResponse
     {
-        $articles = Article::with(['user', 'tags'])
-            ->latest()
-            ->paginate(10);
+        try {
+            $articles = Article::query()
+                ->when(auth()->guest(), function ($query) {
+                    $query->where('status', 'published');
+                })
+                ->with(['user', 'tags'])
+                ->latest()
+                ->paginate(12);
 
-        return response()->json($articles);
+            return response()->json([
+                'data' => $articles->items(),
+                'links' => $articles->linkCollection()->map(function ($link) {
+                    return [
+                        'url' => $link['url'],
+                        'label' => $link['label'],
+                        'active' => $link['active']
+                    ];
+                })->values()->all(),
+                'meta' => [
+                    'current_page' => $articles->currentPage(),
+                    'from' => $articles->firstItem(),
+                    'last_page' => $articles->lastPage(),
+                    'path' => $articles->path(),
+                    'per_page' => $articles->perPage(),
+                    'to' => $articles->lastItem(),
+                    'total' => $articles->total(),
+                ]
+            ]);
+        } catch (\Throwable $e) {
+            return response()->json([
+                'message' => 'Ошибка при загрузке статей',
+                'error' => $e->getMessage()
+            ], 500);
+        }
     }
 
     /**
@@ -97,32 +143,25 @@ class ArticleController extends Controller
      *     )
      * )
      */
-    public function store(Request $request)
+    public function store(ArticleRequest $request)
     {
-        $request->validate([
-            'title' => 'required|string|max:255',
-            'content' => 'required|string',
-            'image' => 'required|image|max:2048',
-            'tags' => 'array',
-            'tags.*' => 'exists:tags,id',
-            'status' => 'required|in:draft,published',
-        ]);
+        try {
+            $validated = $request->validated();
 
-        $imagePath = $request->file('image')->store('articles', 'public');
+            if ($request->hasFile('image')) {
+                $path = $request->file('image')->store('articles', 'public');
+                $validated['image_path'] = $path;
+            }
 
-        $article = Article::create([
-            'title' => $request->title,
-            'content' => $request->content,
-            'image_path' => $imagePath,
-            'status' => $request->status,
-            'user_id' => auth()->id(),
-        ]);
+            $article = $this->articleService->createArticle($validated);
 
-        if ($request->has('tags')) {
-            $article->tags()->attach($request->tags);
+            return response()->json([
+                'message' => 'Статья успешно создана',
+                'article' => $article
+            ]);
+        } catch (\Throwable $e) {
+            return $this->handleError($e);
         }
-
-        return response()->json($article->load(['user', 'tags']), 201);
     }
 
     /**
@@ -150,11 +189,13 @@ class ArticleController extends Controller
      */
     public function show(Article $article)
     {
-        if ($article->status === 'draft' && auth()->user()?->role !== 'admin') {
+        if ($article->status !== 'published' && auth()->guest()) {
             abort(404);
         }
 
-        return response()->json($article->load(['user', 'tags', 'comments.user', 'comments.replies.user']));
+        $article->load(['user:id,name', 'tags']);
+
+        return response()->json($article);
     }
 
     /**
@@ -185,37 +226,28 @@ class ArticleController extends Controller
      *     )
      * )
      */
-    public function update(Request $request, Article $article)
+    public function update(ArticleRequest $request, Article $article)
     {
-        $request->validate([
-            'title' => 'required|string|max:255',
-            'content' => 'required|string',
-            'image' => 'nullable|image|max:2048',
-            'tags' => 'array',
-            'tags.*' => 'exists:tags,id',
-            'status' => 'required|in:draft,published',
-        ]);
+        try {
+            $validated = $request->validated();
 
-        if ($request->hasFile('image')) {
-            // Удаляем старое изображение
-            if ($article->image_path) {
-                Storage::disk('public')->delete($article->image_path);
+            if ($request->hasFile('image')) {
+                if ($article->image_path) {
+                    Storage::disk('public')->delete($article->image_path);
+                }
+                $path = $request->file('image')->store('articles', 'public');
+                $validated['image_path'] = $path;
             }
-            $imagePath = $request->file('image')->store('articles', 'public');
-            $article->image_path = $imagePath;
+
+            $article = $this->articleService->updateArticle($article, $validated);
+
+            return response()->json([
+                'message' => 'Статья успешно обновлена',
+                'article' => $article
+            ]);
+        } catch (\Throwable $e) {
+            return $this->handleError($e);
         }
-
-        $article->update([
-            'title' => $request->title,
-            'content' => $request->content,
-            'status' => $request->status,
-        ]);
-
-        if ($request->has('tags')) {
-            $article->tags()->sync($request->tags);
-        }
-
-        return response()->json($article->load(['user', 'tags']));
     }
 
     /**
@@ -243,12 +275,18 @@ class ArticleController extends Controller
      */
     public function destroy(Article $article)
     {
-        if ($article->image_path) {
-            Storage::disk('public')->delete($article->image_path);
-        }
-        
-        $article->delete();
+        try {
+            if ($article->image_path) {
+                Storage::disk('public')->delete($article->image_path);
+            }
 
-        return response()->json(null, 204);
+            $this->articleService->deleteArticle($article);
+
+            return response()->json([
+                'message' => 'Статья успешно удалена'
+            ]);
+        } catch (\Throwable $e) {
+            return $this->handleError($e);
+        }
     }
 }

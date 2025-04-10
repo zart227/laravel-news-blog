@@ -5,44 +5,57 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use App\Models\Article;
 use App\Models\Comment;
-use Illuminate\Http\Request;
 use App\Events\CommentCreated;
+use App\Events\CommentUpdated;
+use App\Events\CommentDeleted;
+use Illuminate\Http\Request;
+use Illuminate\Http\JsonResponse;
 
 class CommentController extends Controller
 {
     /**
      * Display a listing of the resource.
      */
-    public function index(Article $article)
+    public function index(Article $article): JsonResponse
     {
-        return response()->json(
-            $article->comments()
-                ->with(['user', 'replies.user'])
+        try {
+            if (!$article->exists) {
+                return response()->json(['message' => 'Статья не найдена'], 404);
+            }
+
+            $comments = $article->comments()
+                ->with(['user:id,name', 'replies.user:id,name', 'replies.replies.user:id,name'])
                 ->whereNull('parent_id')
                 ->latest()
-                ->get()
-        );
+                ->get();
+
+            return response()->json($comments);
+        } catch (\Throwable $e) {
+            return response()->json([
+                'message' => 'Ошибка при загрузке комментариев',
+                'error' => $e->getMessage()
+            ], 500);
+        }
     }
 
     /**
      * Store a newly created resource in storage.
      */
-    public function store(Request $request, Article $article)
+    public function store(Request $request, Article $article): JsonResponse
     {
-        $request->validate([
-            'content' => 'required|string',
-            'parent_id' => 'nullable|exists:comments,id',
+        $validated = $request->validate([
+            'content' => 'required|string|min:3|max:1000',
+            'parent_id' => 'nullable|exists:comments,id'
         ]);
 
         $comment = $article->comments()->create([
-            'content' => $request->content,
+            'content' => $validated['content'],
             'user_id' => auth()->id(),
-            'parent_id' => $request->parent_id,
+            'parent_id' => $validated['parent_id'] ?? null,
         ]);
 
-        $comment->load(['user', 'parent']);
+        $comment->load(['user', 'parent.user']);
 
-        // Отправляем событие о новом комментарии
         broadcast(new CommentCreated($comment))->toOthers();
 
         return response()->json($comment, 201);
@@ -59,29 +72,35 @@ class CommentController extends Controller
     /**
      * Update the specified resource in storage.
      */
-    public function update(Request $request, Comment $comment)
+    public function update(Request $request, Comment $comment): JsonResponse
     {
         $this->authorize('update', $comment);
 
-        $request->validate([
-            'content' => 'required|string',
+        $validated = $request->validate([
+            'content' => 'required|string|min:3|max:1000',
         ]);
 
-        $comment->update([
-            'content' => $request->content,
-        ]);
+        $comment->update($validated);
+        $comment->load(['user', 'parent.user']);
 
-        return response()->json($comment->load('user'));
+        broadcast(new CommentUpdated($comment))->toOthers();
+
+        return response()->json($comment);
     }
 
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy(Comment $comment)
+    public function destroy(Comment $comment): JsonResponse
     {
         $this->authorize('delete', $comment);
-        
+
+        $articleId = $comment->article_id;
+        $commentId = $comment->id;
+
         $comment->delete();
+
+        broadcast(new CommentDeleted($commentId, $articleId))->toOthers();
 
         return response()->json(null, 204);
     }
