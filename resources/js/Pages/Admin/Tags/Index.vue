@@ -5,7 +5,7 @@ import AppLayout from '@/Layouts/AppLayout.vue';
 import PrimaryButton from '@/Components/PrimaryButton.vue';
 import DangerButton from '@/Components/DangerButton.vue';
 import Pagination from '@/Components/UI/Pagination.vue';
-import type { Tag } from '@/types/inertia';
+import type { Tag } from '@/types';
 
 interface Props {
   tags: {
@@ -21,7 +21,7 @@ const props = defineProps<Props>();
 
 const deleteTag = (tag: Tag) => {
   if (confirm(`Вы уверены, что хотите удалить тег "${tag.name}"?`)) {
-    router.delete(route('admin.tags.destroy', tag.id), {
+    router.delete(route('admin.tags.destroy', { id: tag.id }), {
       preserveScroll: true,
       onSuccess: () => {
         notify.success('Тег успешно удален');
@@ -87,7 +87,7 @@ const deleteTag = (tag: Tag) => {
                   </td>
                   <td class="relative whitespace-nowrap py-4 pl-3 pr-4 text-right text-sm font-medium sm:pr-6">
                     <Link
-                      :href="route('admin.tags.edit', tag.id)"
+                      :href="route('admin.tags.edit', { id: tag.id })"
                       class="text-indigo-600 hover:text-indigo-900 mr-4"
                     >
                       Редактировать

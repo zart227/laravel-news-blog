@@ -22,13 +22,12 @@
 
 <script setup lang="ts">
 import { useForm } from '@inertiajs/vue3';
-import { useNotification } from '@/Composables/useNotification';
 import AppLayout from '@/Layouts/AppLayout.vue';
 import InputLabel from '@/Components/UI/InputLabel.vue';
 import TextInput from '@/Components/UI/TextInput.vue';
 import InputError from '@/Components/UI/InputError.vue';
 import PrimaryButton from '@/Components/UI/PrimaryButton.vue';
-import type { Article } from '@/types/inertia';
+import type { Article } from '@/types';
 import { notify } from '@/utils/notifications';
 
 interface Props {
@@ -41,12 +40,12 @@ const form = useForm({
   title: props.article.title,
   content: props.article.content,
   image: null as File | null,
-  tags: props.article.tags.map(tag => tag.id),
+  tags: props.article.tags?.map(tag => tag.id) ?? [],
   _method: 'PUT'
 });
 
 const handleSubmit = () => {
-  form.post(route('admin.articles.update', props.article.slug), {
+  form.post(route('admin.articles.update', { slug: props.article.slug }), {
     preserveScroll: true,
     onSuccess: () => {
       notify.success('Статья успешно обновлена');

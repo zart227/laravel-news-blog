@@ -113,14 +113,14 @@
               </td>
               <td class="px-6 py-4 whitespace-nowrap text-sm font-medium space-x-2">
                 <Link
-                  :href="route('articles.show', article.slug)"
+                  :href="route('articles.show', { slug: article.slug })"
                   class="text-indigo-600 hover:text-indigo-900"
                   target="_blank"
                 >
                   Просмотр
                 </Link>
                 <Link
-                  :href="route('admin.articles.edit', article.id)"
+                  :href="route('admin.articles.edit', { id: article.id })"
                   class="text-yellow-600 hover:text-yellow-900"
                 >
                   Редактировать

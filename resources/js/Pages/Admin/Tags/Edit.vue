@@ -21,7 +21,7 @@ const form = useForm({
 });
 
 const handleSubmit = () => {
-  form.post(route('admin.tags.update', props.tag.id), {
+  form.post(route('admin.tags.update', { id: props.tag.id }), {
     preserveScroll: true,
     onSuccess: () => {
       notify.success('Тег успешно обновлен');
