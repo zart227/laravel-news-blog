@@ -15,8 +15,14 @@ return new class extends Migration
             $table->id();
             $table->foreignId('article_id')->constrained()->onDelete('cascade');
             $table->foreignId('user_id')->nullable()->constrained()->onDelete('set null');
-            $table->string('ip_address');
-            $table->timestamp('viewed_at');
+            $table->string('ip_address', 45)->nullable();
+            $table->string('user_agent')->nullable();
+            $table->integer('view_count')->default(1);
+            $table->timestamps();
+
+            // Индексы для оптимизации запросов
+            $table->index('created_at');
+            $table->index(['article_id', 'ip_address']);
         });
     }
 
