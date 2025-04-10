@@ -63,7 +63,7 @@ class ArticleController extends Controller
         }
 
         return Inertia::render('Articles/Index', [
-            'articles' => $articles,
+            'articles' => $articles->items(),
             'articlesPagination' => [
                 'current_page' => $articles->currentPage(),
                 'last_page' => $articles->lastPage(),
