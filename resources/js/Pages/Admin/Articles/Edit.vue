@@ -1,5 +1,5 @@
 <template>
-  <AppLayout>
+  <AdminLayout>
     <template #header>
       <h2 class="text-xl font-semibold leading-tight text-gray-800">
         Редактирование статьи
@@ -17,12 +17,12 @@
         </div>
       </div>
     </div>
-  </AppLayout>
+  </AdminLayout>
 </template>
 
 <script setup lang="ts">
 import { useForm } from '@inertiajs/vue3';
-import AppLayout from '@/Layouts/AppLayout.vue';
+import AdminLayout from '@/Layouts/AdminLayout.vue';
 import InputLabel from '@/Components/UI/InputLabel.vue';
 import TextInput from '@/Components/UI/TextInput.vue';
 import InputError from '@/Components/UI/InputError.vue';

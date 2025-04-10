@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { useForm } from '@inertiajs/vue3';
 import { notify } from '@/utils/notifications';
-import AppLayout from '@/Layouts/AppLayout.vue';
+import AdminLayout from '@/Layouts/AdminLayout.vue';
 import InputLabel from '@/Components/UI/InputLabel.vue';
 import TextInput from '@/Components/UI/TextInput.vue';
 import InputError from '@/Components/UI/InputError.vue';
@@ -34,7 +34,7 @@ const handleSubmit = () => {
 </script>
 
 <template>
-  <AppLayout title="Редактирование тега">
+  <AdminLayout title="Редактирование тега">
     <div class="py-12">
       <div class="mx-auto max-w-7xl sm:px-6 lg:px-8">
         <div class="overflow-hidden bg-white shadow-sm sm:rounded-lg">
@@ -77,5 +77,5 @@ const handleSubmit = () => {
         </div>
       </div>
     </div>
-  </AppLayout>
+  </AdminLayout>
 </template> 

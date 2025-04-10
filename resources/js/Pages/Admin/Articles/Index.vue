@@ -1,6 +1,6 @@
 <template>
   <Head title="Управление статьями" />
-  <AppLayout title="Управление статьями">
+  <AdminLayout title="Управление статьями">
     <div class="max-w-7xl mx-auto">
       <div class="flex justify-between items-center mb-6">
         <h1 class="text-2xl font-bold">Управление статьями</h1>
@@ -166,13 +166,13 @@
         </div>
       </div>
     </div>
-  </AppLayout>
+  </AdminLayout>
 </template>
 
 <script setup lang="ts">
 import { ref, onMounted } from 'vue';
 import { Link, Head } from '@inertiajs/vue3';
-import AppLayout from '@/Layouts/AppLayout.vue';
+import AdminLayout from '@/Layouts/AdminLayout.vue';
 import axios from 'axios';
 import debounce from 'lodash/debounce';
 import { notify } from '@/utils/notifications';

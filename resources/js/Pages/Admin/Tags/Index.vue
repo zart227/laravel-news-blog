@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { Link, router } from '@inertiajs/vue3';
 import { notify } from '@/utils/notifications';
-import AppLayout from '@/Layouts/AppLayout.vue';
+import AdminLayout from '@/Layouts/AdminLayout.vue';
 import PrimaryButton from '@/Components/PrimaryButton.vue';
 import DangerButton from '@/Components/DangerButton.vue';
 import Pagination from '@/Components/UI/Pagination.vue';
@@ -35,7 +35,7 @@ const deleteTag = (tag: Tag) => {
 </script>
 
 <template>
-  <AppLayout title="Управление тегами">
+  <AdminLayout title="Управление тегами">
     <div class="sm:flex sm:items-center">
       <div class="sm:flex-auto">
         <h1 class="text-xl font-semibold text-gray-900">Теги</h1>
@@ -110,5 +110,5 @@ const deleteTag = (tag: Tag) => {
     <div class="mt-6">
       <Pagination :links="tags.links" />
     </div>
-  </AppLayout>
+  </AdminLayout>
 </template> 

@@ -1,6 +1,6 @@
 <template>
   <Head :title="isEditing ? 'Редактирование статьи' : 'Создание статьи'" />
-  <AppLayout :title="isEditing ? 'Редактирование статьи' : 'Создание статьи'">
+  <AdminLayout :title="isEditing ? 'Редактирование статьи' : 'Создание статьи'">
     <div class="max-w-4xl mx-auto">
       <div class="bg-white shadow rounded-lg p-6">
         <h1 class="text-2xl font-bold mb-6">
@@ -106,19 +106,19 @@
         </form>
       </div>
     </div>
-  </AppLayout>
+  </AdminLayout>
 </template>
 
 <script>
 import { ref, computed } from 'vue';
 import { Link, router } from '@inertiajs/vue3';
-import AppLayout from '@/Layouts/AppLayout.vue';
+import AdminLayout from '@/Layouts/AdminLayout.vue';
 import FileUpload from '@/Components/UI/FileUpload.vue';
 import { Head } from '@inertiajs/vue3';
 
 export default {
   components: {
-    AppLayout,
+    AdminLayout,
     FileUpload,
     Link,
     Head,
