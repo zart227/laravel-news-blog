@@ -70,16 +70,17 @@ const loadingTrigger = ref<HTMLElement | null>(null);
 const allArticles = ref<Article[]>([]);
 
 // При изменении данных статей обновляем массив всех статей
-watch(() => page.props.articles, (newArticles) => {
+watch(() => page.props.articles, (newArticles: Article[] | undefined) => {
   if (!newArticles) return;
-  
+
   if (page.props.articlesPagination?.current_page === 1) {
     // Если это первая страница, заменяем весь массив
     allArticles.value = [...newArticles];
   } else {
     // Иначе добавляем новые статьи в конец массива
-    const newArticleIds = new Set(newArticles.map(a => a.id));
-    const uniqueNewArticles = newArticles.filter(a => !allArticles.value.some(existing => existing.id === a.id));
+    const uniqueNewArticles = newArticles.filter(article => 
+      !allArticles.value.some(existing => existing.id === article.id)
+    );
     allArticles.value = [...allArticles.value, ...uniqueNewArticles];
   }
 }, { immediate: true });
