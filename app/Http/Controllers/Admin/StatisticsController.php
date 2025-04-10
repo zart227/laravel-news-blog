@@ -7,6 +7,8 @@ use App\Models\Article;
 use App\Models\Tag;
 use App\Models\User;
 use App\Models\ArticleView;
+use App\Models\Like;
+use App\Models\Comment;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
@@ -16,65 +18,32 @@ class StatisticsController extends Controller
 {
     public function index()
     {
-        $now = Carbon::now();
-        $lastMonth = $now->copy()->subMonth();
-
-        // Получаем статистику просмотров
-        $currentViews = ArticleView::whereMonth('created_at', $now->month)
-            ->sum('view_count');
-        $lastMonthViews = ArticleView::whereMonth('created_at', $lastMonth->month)
-            ->sum('view_count');
-        $viewsGrowth = $this->calculateGrowth($currentViews, $lastMonthViews);
-
-        // Получаем статистику пользователей
-        $currentUsers = User::whereMonth('created_at', $now->month)->count();
-        $lastMonthUsers = User::whereMonth('created_at', $lastMonth->month)->count();
-        $usersGrowth = $this->calculateGrowth($currentUsers, $lastMonthUsers);
-
-        // Получаем статистику статей
-        $currentArticles = Article::whereMonth('created_at', $now->month)->count();
-        $lastMonthArticles = Article::whereMonth('created_at', $lastMonth->month)->count();
-        $articlesGrowth = $this->calculateGrowth($currentArticles, $lastMonthArticles);
-
-        // Получаем статистику тегов
-        $currentTags = Tag::whereMonth('created_at', $now->month)->count();
-        $lastMonthTags = Tag::whereMonth('created_at', $lastMonth->month)->count();
-        $tagsGrowth = $this->calculateGrowth($currentTags, $lastMonthTags);
-
-        // Получаем общее количество просмотров
+        // Получаем общую статистику
+        $totalArticles = Article::count();
         $totalViews = ArticleView::sum('view_count');
+        $totalLikes = Like::where('is_dislike', false)->count();
+        $totalComments = Comment::count();
+
+        // Получаем популярные статьи
+        $popularArticles = Article::select('articles.*')
+            ->withCount(['views', 'likes', 'comments'])
+            ->orderByDesc('views_count')
+            ->limit(5)
+            ->get()
+            ->map(fn($article) => [
+                'id' => $article->id,
+                'title' => $article->title,
+                'views' => $article->views_count,
+                'likes' => $article->likes_count,
+                'comments' => $article->comments_count,
+            ]);
 
         return Inertia::render('Admin/Statistics/Index', [
-            'statistics' => [
-                'views' => [
-                    'total' => $totalViews,
-                    'growth' => $viewsGrowth,
-                ],
-                'users' => [
-                    'total' => User::count(),
-                    'growth' => $usersGrowth,
-                ],
-                'articles' => [
-                    'total' => Article::count(),
-                    'growth' => $articlesGrowth,
-                ],
-                'tags' => [
-                    'total' => Tag::count(),
-                    'growth' => $tagsGrowth,
-                ],
-            ],
-            'popularArticles' => Article::select('articles.*')
-                ->withCount(['views', 'likes', 'comments'])
-                ->orderByDesc('views_count')
-                ->limit(5)
-                ->get()
-                ->map(fn($article) => [
-                    'id' => $article->id,
-                    'title' => $article->title,
-                    'views' => $article->views_count,
-                    'likes' => $article->likes_count,
-                    'comments' => $article->comments_count,
-                ])
+            'totalArticles' => $totalArticles,
+            'totalViews' => $totalViews,
+            'totalLikes' => $totalLikes,
+            'totalComments' => $totalComments,
+            'popularArticles' => $popularArticles
         ]);
     }
 
