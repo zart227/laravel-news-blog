@@ -7,6 +7,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Support\Facades\Storage;
 
 class Article extends Model
 {
@@ -20,13 +21,26 @@ class Article extends Model
         'user_id',
     ];
 
+    protected $appends = ['image_url'];
+
     protected $casts = [
-        'status' => 'string',
+        'created_at' => 'datetime',
+        'updated_at' => 'datetime',
     ];
+
+    public function getImageUrlAttribute(): ?string
+    {
+        return $this->image_path ? Storage::disk('public')->url($this->image_path) : null;
+    }
 
     public function user(): BelongsTo
     {
         return $this->belongsTo(User::class);
+    }
+
+    public function author(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'user_id');
     }
 
     public function comments(): HasMany
