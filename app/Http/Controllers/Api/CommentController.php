@@ -1,0 +1,118 @@
+<?php
+
+namespace App\Http\Controllers\Api;
+
+use App\Events\CommentCreated;
+use App\Events\CommentDeleted;
+use App\Events\CommentUpdated;
+use App\Events\StatisticsUpdated;
+use App\Http\Controllers\Controller;
+use App\Models\Article;
+use App\Models\Comment;
+use App\Services\StatisticsService;
+use Illuminate\Http\JsonResponse;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Gate;
+use Illuminate\Validation\Rule;
+
+class CommentController extends Controller
+{
+    /**
+     * Display a listing of the resource.
+     */
+    public function index(Article $article): JsonResponse
+    {
+        try {
+            if (! $article->exists) {
+                return response()->json(['message' => 'Статья не найдена'], 404);
+            }
+
+            $comments = $article->comments()
+                ->with(['user:id,name', 'replies.user:id,name', 'replies.replies.user:id,name'])
+                ->whereNull('parent_id')
+                ->latest()
+                ->get();
+
+            return response()->json($comments);
+        } catch (\Throwable $e) {
+            return response()->json([
+                'message' => 'Ошибка при загрузке комментариев',
+                'error' => $e->getMessage(),
+            ], 500);
+        }
+    }
+
+    /**
+     * Store a newly created resource in storage.
+     */
+    public function store(Request $request, Article $article): JsonResponse
+    {
+        $validated = $request->validate([
+            'content' => 'required|string|min:3|max:1000',
+            'parent_id' => ['nullable', Rule::exists('comments', 'id')->where('article_id', $article->id)],
+        ]);
+
+        $comment = $article->comments()->create([
+            'content' => $validated['content'],
+            'user_id' => auth()->id(),
+            'parent_id' => $validated['parent_id'] ?? null,
+        ]);
+
+        $comment->load(['user', 'parent.user']);
+
+        broadcast(new CommentCreated($comment))->toOthers();
+        StatisticsService::invalidateCache();
+        StatisticsUpdated::dispatch($article->id, 'comments', $article->comments()->count());
+
+        return response()->json($comment, 201);
+    }
+
+    /**
+     * Display the specified resource.
+     */
+    public function show(string $id)
+    {
+        //
+    }
+
+    /**
+     * Update the specified resource in storage.
+     */
+    public function update(Request $request, Comment $comment): JsonResponse
+    {
+        Gate::authorize('update', $comment);
+
+        $validated = $request->validate([
+            'content' => 'required|string|min:3|max:1000',
+        ]);
+
+        $comment->update($validated);
+        $comment->load(['user', 'parent.user']);
+
+        broadcast(new CommentUpdated($comment))->toOthers();
+
+        return response()->json($comment);
+    }
+
+    /**
+     * Remove the specified resource from storage.
+     */
+    public function destroy(Comment $comment): JsonResponse
+    {
+        Gate::authorize('delete', $comment);
+
+        $articleId = $comment->article_id;
+        $commentId = $comment->id;
+        $article = $comment->article;
+        $articleSlug = $article->slug;
+
+        $comment->delete();
+
+        broadcast(new CommentDeleted($commentId, $articleId, $articleSlug))->toOthers();
+
+        StatisticsService::invalidateCache();
+        StatisticsUpdated::dispatch($articleId, 'comments', $article->comments()->count());
+
+        return response()->json(null, 204);
+    }
+}

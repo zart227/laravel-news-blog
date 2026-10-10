@@ -1,0 +1,103 @@
+<script setup lang="ts">
+import { ref } from 'vue';
+import axios from 'axios';
+import { HandThumbUpIcon as ThumbUpIcon, HandThumbDownIcon as ThumbDownIcon } from '@heroicons/vue/24/outline';
+
+interface Props {
+  type: 'article' | 'comment';
+  id: number;
+  initialLikes: number;
+  initialDislikes: number;
+  isLiked?: boolean;
+  isDisliked?: boolean;
+}
+
+interface LikeResponse {
+  likes_count: number;
+  dislikes_count: number;
+  action: 'liked' | 'unliked' | 'disliked' | 'undisliked';
+}
+
+const props = withDefaults(defineProps<Props>(), {
+  isLiked: false,
+  isDisliked: false,
+  initialLikes: 0,
+  initialDislikes: 0
+});
+
+const likes = ref(props.initialLikes);
+const dislikes = ref(props.initialDislikes);
+const isLiked = ref(props.isLiked);
+const isDisliked = ref(props.isDisliked);
+
+const busy = ref(false);
+
+const toggleLike = async () => {
+  if (busy.value) return;
+  busy.value = true;
+  try {
+    const response = await axios.post<LikeResponse>('/like', {
+      type: props.type,
+      id: props.id
+    });
+
+    const data = response.data;
+    if (data) {
+      likes.value = data.likes_count;
+      dislikes.value = data.dislikes_count;
+      isLiked.value = data.action === 'liked';
+      isDisliked.value = false;
+    }
+  } catch (error) {
+    console.error('Error toggling like:', error);
+  } finally {
+    busy.value = false;
+  }
+};
+
+const toggleDislike = async () => {
+  if (busy.value) return;
+  busy.value = true;
+  try {
+    const response = await axios.post<LikeResponse>('/dislike', {
+      type: props.type,
+      id: props.id
+    });
+
+    const data = response.data;
+    if (data) {
+      likes.value = data.likes_count;
+      dislikes.value = data.dislikes_count;
+      isDisliked.value = data.action === 'disliked';
+      isLiked.value = false;
+    }
+  } catch (error) {
+    console.error('Error toggling dislike:', error);
+  } finally {
+    busy.value = false;
+  }
+};
+</script>
+
+<template>
+  <div class="flex items-center space-x-4">
+    <button
+      :disabled="busy"
+      @click="toggleLike"
+      class="flex items-center space-x-1 text-sm"
+      :class="{ 'text-blue-500': isLiked }"
+    >
+      <ThumbUpIcon class="w-5 h-5" />
+      <span>{{ likes }}</span>
+    </button>
+    <button
+      :disabled="busy"
+      @click="toggleDislike"
+      class="flex items-center space-x-1 text-sm"
+      :class="{ 'text-red-500': isDisliked }"
+    >
+      <ThumbDownIcon class="w-5 h-5" />
+      <span>{{ dislikes }}</span>
+    </button>
+  </div>
+</template> 

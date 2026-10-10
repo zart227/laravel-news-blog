@@ -11,12 +11,14 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('article_views', function (Blueprint $table) {
+        Schema::create('likes', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('article_id')->constrained()->onDelete('cascade');
-            $table->foreignId('user_id')->nullable()->constrained()->onDelete('set null');
-            $table->string('ip_address');
-            $table->timestamp('viewed_at');
+            $table->foreignId('user_id')->constrained()->onDelete('cascade');
+            $table->morphs('likeable');
+            $table->boolean('is_dislike')->default(false);
+            $table->timestamps();
+
+            $table->unique(['user_id', 'likeable_id', 'likeable_type']);
         });
     }
 
@@ -25,6 +27,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('article_views');
+        Schema::dropIfExists('likes');
     }
 };
