@@ -68,8 +68,11 @@ function exportCsv() {
   const link = document.createElement('a');
   link.href = url;
   link.download = `statistics-${period.value}.csv`;
+  document.body.appendChild(link);
   link.click();
-  URL.revokeObjectURL(url);
+  link.remove();
+  // Let the browser start reading the blob before releasing its URL.
+  setTimeout(() => URL.revokeObjectURL(url), 1000);
 }
 
 onMounted(() => {
