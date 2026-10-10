@@ -21,6 +21,8 @@ RUN apt-get update && apt-get install -y \
     redis-tools \
     tzdata \
     libssl-dev \
+    libicu-dev \
+    libsqlite3-dev \
     && apt-get clean \
     && rm -rf /var/lib/apt/lists/*
 
@@ -28,6 +30,7 @@ RUN apt-get update && apt-get install -y \
 RUN docker-php-ext-install \
     pdo \
     pdo_mysql \
+    pdo_sqlite \
     mbstring \
     exif \
     pcntl \
@@ -43,7 +46,7 @@ RUN docker-php-ext-install \
 RUN pecl install redis && docker-php-ext-enable redis
 
 # Установка MongoDB
-RUN pecl install mongodb \
+RUN pecl install mongodb-1.20.1 \
     && docker-php-ext-enable mongodb
 
 # Установка Xdebug

@@ -3,10 +3,9 @@
 namespace App\Http\Controllers\Web;
 
 use App\Http\Controllers\Controller;
-use App\Models\Tag;
 use App\Http\Requests\TagRequest;
+use App\Models\Tag;
 use App\Services\TagService;
-use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Inertia\Response;
 
@@ -24,7 +23,7 @@ class TagController extends Controller
         $tags = Tag::withCount('articles')->get();
 
         return Inertia::render('Tags/Index', [
-            'tags' => $tags
+            'tags' => $tags,
         ]);
     }
 
@@ -46,15 +45,15 @@ class TagController extends Controller
         } else {
             // Если прямой запрос или полная загрузка страницы - загружаем все данные до текущей страницы
             $allResults = collect();
-            
+
             for ($page = 1; $page <= $currentPage; $page++) {
                 $pageResults = $query->clone()->paginate($perPage, ['*'], 'page', $page);
                 $allResults = $allResults->concat($pageResults->items());
             }
-            
+
             // Получаем общее количество для пагинации
             $total = $query->count();
-            
+
             // Создаем пагинатор с уже загруженными данными
             $articles = new \Illuminate\Pagination\LengthAwarePaginator(
                 $allResults,
@@ -65,6 +64,8 @@ class TagController extends Controller
             );
         }
 
+        app(\App\Services\StatisticsService::class)->attachViewCounts(collect($articles->items()));
+
         return Inertia::render('Tags/Show', [
             'tag' => $tag,
             'articles' => $articles,
@@ -73,7 +74,7 @@ class TagController extends Controller
                 'last_page' => $articles->lastPage(),
                 'per_page' => $articles->perPage(),
                 'total' => $articles->total(),
-            ]
+            ],
         ]);
     }
 
@@ -84,7 +85,7 @@ class TagController extends Controller
             ->paginate(10);
 
         return Inertia::render('Admin/Tags/Index', [
-            'tags' => $tags
+            'tags' => $tags,
         ]);
     }
 
@@ -97,6 +98,7 @@ class TagController extends Controller
     {
         try {
             $tag = $this->tagService->createTag($request->validated());
+
             return Inertia::location(route('admin.tags.index'));
         } catch (\Throwable $e) {
             return back()->with('error', 'Ошибка при создании тега');
@@ -106,7 +108,7 @@ class TagController extends Controller
     public function edit(Tag $tag): Response
     {
         return Inertia::render('Admin/Tags/Edit', [
-            'tag' => $tag
+            'tag' => $tag,
         ]);
     }
 
@@ -114,6 +116,7 @@ class TagController extends Controller
     {
         try {
             $tag = $this->tagService->updateTag($tag, $request->validated());
+
             return Inertia::location(route('admin.tags.index'));
         } catch (\Throwable $e) {
             return back()->with('error', 'Ошибка при обновлении тега');
@@ -124,9 +127,10 @@ class TagController extends Controller
     {
         try {
             $this->tagService->deleteTag($tag);
+
             return Inertia::location(route('admin.tags.index'));
         } catch (\Throwable $e) {
             return back()->with('error', 'Ошибка при удалении тега');
         }
     }
-} 
+}

@@ -1,25 +1,20 @@
 <?php
 
+use App\Http\Middleware\AdminMiddleware;
+use App\Http\Middleware\Authenticate;
+use App\Http\Middleware\HandleInertiaRequests;
+use App\Http\Middleware\RedirectIfAuthenticated;
+use App\Http\Middleware\RoleMiddleware;
+use App\Http\Middleware\VerifyCsrfToken;
 use App\Providers\AppServiceProvider;
+use Illuminate\Cookie\Middleware\AddQueuedCookiesToResponse;
+use Illuminate\Cookie\Middleware\EncryptCookies;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
-use Illuminate\Cookie\Middleware\EncryptCookies;
-use Illuminate\Cookie\Middleware\AddQueuedCookiesToResponse;
+use Illuminate\Routing\Middleware\SubstituteBindings;
 use Illuminate\Session\Middleware\StartSession;
 use Illuminate\View\Middleware\ShareErrorsFromSession;
-use Illuminate\Foundation\Http\Middleware\ValidatePostSize;
-use Illuminate\Foundation\Http\Middleware\ConvertEmptyStringsToNull;
-use App\Http\Middleware\TrimStrings;
-use App\Http\Middleware\HandleInertiaRequests;
-use App\Http\Middleware\VerifyCsrfToken;
-use App\Http\Middleware\Authenticate;
-use App\Http\Middleware\RedirectIfAuthenticated;
-use App\Http\Middleware\AdminMiddleware;
-use App\Http\Middleware\RoleMiddleware;
-use Illuminate\Routing\Middleware\SubstituteBindings;
-use Illuminate\Http\Middleware\HandleCors;
-use Laravel\Sanctum\Http\Middleware\EnsureFrontendRequestsAreStateful;
 
 return Application::configure(basePath: dirname(__DIR__))
     ->withProviders()
@@ -45,6 +40,7 @@ return Application::configure(basePath: dirname(__DIR__))
         ]);
 
         $middleware->api();
+        $middleware->statefulApi();
         $middleware->throttleApi();
 
         $middleware->replace(\Illuminate\Http\Middleware\TrustProxies::class, \App\Http\Middleware\TrustProxies::class);

@@ -86,8 +86,8 @@ const submit = () => {
         preserveScroll: true,
         onSuccess: () => {
             const flash = page.props.flash;
-            if (flash.message) {
-                notify.success(flash.message);
+            if (flash?.success) {
+                notify.success(flash.success);
             }
         },
         onError: () => {

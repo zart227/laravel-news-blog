@@ -2,14 +2,18 @@
 
 namespace App\Http\Controllers\Api;
 
+use App\Events\CommentCreated;
+use App\Events\CommentDeleted;
+use App\Events\CommentUpdated;
+use App\Events\StatisticsUpdated;
 use App\Http\Controllers\Controller;
 use App\Models\Article;
 use App\Models\Comment;
-use App\Events\CommentCreated;
-use App\Events\CommentUpdated;
-use App\Events\CommentDeleted;
-use Illuminate\Http\Request;
+use App\Services\StatisticsService;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Gate;
+use Illuminate\Validation\Rule;
 
 class CommentController extends Controller
 {
@@ -19,7 +23,7 @@ class CommentController extends Controller
     public function index(Article $article): JsonResponse
     {
         try {
-            if (!$article->exists) {
+            if (! $article->exists) {
                 return response()->json(['message' => 'Статья не найдена'], 404);
             }
 
@@ -33,7 +37,7 @@ class CommentController extends Controller
         } catch (\Throwable $e) {
             return response()->json([
                 'message' => 'Ошибка при загрузке комментариев',
-                'error' => $e->getMessage()
+                'error' => $e->getMessage(),
             ], 500);
         }
     }
@@ -45,7 +49,7 @@ class CommentController extends Controller
     {
         $validated = $request->validate([
             'content' => 'required|string|min:3|max:1000',
-            'parent_id' => 'nullable|exists:comments,id'
+            'parent_id' => ['nullable', Rule::exists('comments', 'id')->where('article_id', $article->id)],
         ]);
 
         $comment = $article->comments()->create([
@@ -57,6 +61,8 @@ class CommentController extends Controller
         $comment->load(['user', 'parent.user']);
 
         broadcast(new CommentCreated($comment))->toOthers();
+        StatisticsService::invalidateCache();
+        StatisticsUpdated::dispatch($article->id, 'comments', $article->comments()->count());
 
         return response()->json($comment, 201);
     }
@@ -74,7 +80,7 @@ class CommentController extends Controller
      */
     public function update(Request $request, Comment $comment): JsonResponse
     {
-        $this->authorize('update', $comment);
+        Gate::authorize('update', $comment);
 
         $validated = $request->validate([
             'content' => 'required|string|min:3|max:1000',
@@ -93,14 +99,19 @@ class CommentController extends Controller
      */
     public function destroy(Comment $comment): JsonResponse
     {
-        $this->authorize('delete', $comment);
+        Gate::authorize('delete', $comment);
 
         $articleId = $comment->article_id;
         $commentId = $comment->id;
+        $article = $comment->article;
+        $articleSlug = $article->slug;
 
         $comment->delete();
 
-        broadcast(new CommentDeleted($commentId, $articleId))->toOthers();
+        broadcast(new CommentDeleted($commentId, $articleId, $articleSlug))->toOthers();
+
+        StatisticsService::invalidateCache();
+        StatisticsUpdated::dispatch($articleId, 'comments', $article->comments()->count());
 
         return response()->json(null, 204);
     }

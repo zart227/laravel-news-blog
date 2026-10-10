@@ -7,6 +7,7 @@ use MongoDB\Laravel\Eloquent\Model;
 class Statistics extends Model
 {
     protected $connection = 'mongodb';
+
     protected $collection = 'statistics';
 
     protected $fillable = [
@@ -16,8 +17,12 @@ class Statistics extends Model
         'likes',
         'comments_count',
         'shares',
+        'user_agents',
+        'referrers',
+        'unique_viewers',
+        'dislikes',
         'created_at',
-        'updated_at'
+        'updated_at',
     ];
 
     protected $casts = [
@@ -27,11 +32,11 @@ class Statistics extends Model
         'comments_count' => 'integer',
         'shares' => 'integer',
         'created_at' => 'datetime',
-        'updated_at' => 'datetime'
+        'updated_at' => 'datetime',
     ];
 
     public function article()
     {
         return $this->belongsTo(Article::class);
     }
-} 
+}

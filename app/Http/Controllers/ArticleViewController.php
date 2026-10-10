@@ -3,25 +3,16 @@
 namespace App\Http\Controllers;
 
 use App\Models\Article;
-use App\Services\StatisticsService;
+use App\Services\ViewTracker;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Http\Request;
 
 class ArticleViewController extends Controller
 {
-    protected $statisticsService;
-
-    public function __construct(StatisticsService $statisticsService)
+    public function store(Article $article, Request $request, ViewTracker $tracker): JsonResponse
     {
-        $this->statisticsService = $statisticsService;
-    }
+        abort_if($article->status !== 'published' && ! $request->user(), 404);
 
-    public function store(Article $article): JsonResponse
-    {
-        $statistics = $this->statisticsService->recordView($article);
-
-        return response()->json([
-            'success' => true,
-            'statistics' => $statistics
-        ]);
+        return response()->json(['success' => true, 'statistics' => $tracker->track($article, $request)]);
     }
-} 
+}

@@ -5,7 +5,6 @@ import { createApp, h } from 'vue';
 import { createInertiaApp } from '@inertiajs/vue3';
 import { resolvePageComponent } from 'laravel-vite-plugin/inertia-helpers';
 import { ZiggyVue } from 'ziggy-js';
-import { Ziggy } from './ziggy';
 import { NotificationsPlugin } from './utils/notifications';
 import axios from 'axios';
 
@@ -18,9 +17,6 @@ if (token) {
 
 const appName = import.meta.env.VITE_APP_NAME || 'Laravel';
 
-// Глобально определяем Ziggy
-window.Ziggy = Ziggy;
-
 createInertiaApp({
     resolve: name => {
         const pages = import.meta.glob('./Pages/**/*.vue', { eager: true })
@@ -32,7 +28,9 @@ createInertiaApp({
         
         // Инициализируем плагины
         app.use(plugin);
-        app.use(ZiggyVue, Ziggy);
+        const ziggy = props.initialPage.props.ziggy;
+        window.Ziggy = ziggy;
+        app.use(ZiggyVue, ziggy);
         app.use(NotificationsPlugin);
         
         app.mount(el);

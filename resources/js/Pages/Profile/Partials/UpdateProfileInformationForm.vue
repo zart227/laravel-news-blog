@@ -85,7 +85,7 @@ import { Link } from '@inertiajs/vue3';
 import type { PageProps } from '@/types/inertia';
 
 const page = usePage<PageProps>();
-const user = page.props.auth.user;
+const user = page.props.auth.user!;
 
 const props = defineProps<{
     mustVerifyEmail: boolean;

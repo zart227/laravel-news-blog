@@ -6,14 +6,6 @@
         <meta name="csrf-token" content="{{ csrf_token() }}">
         <link rel="icon" type="image/svg+xml" href="/favicon.svg">
 
-        {{-- Vite Environment Variables --}}
-        <script>
-            window.VITE_REVERB_APP_KEY = '{{ config('broadcasting.connections.reverb.key') }}';
-            window.VITE_REVERB_HOST = '{{ config('broadcasting.connections.reverb.host') }}';
-            window.VITE_REVERB_PORT = {{ config('broadcasting.connections.reverb.port') }};
-            window.VITE_REVERB_SCHEME = '{{ config('broadcasting.connections.reverb.scheme') }}';
-        </script>
-
         {{-- Inertia --}}
         @routes
         @vite('resources/js/app.js')

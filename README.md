@@ -196,3 +196,61 @@ php artisan test
 ## Лицензия
 
 MIT License
+
+## Хранение и статистика (ветка mongodb)
+
+- **MySQL** — пользователи, статьи, теги, комментарии, лайки и дизлайки. Запросы контента остаются SQL-запросами.
+- **MongoDB 5.0+** — `article_view_events` (каждый просмотр), `statistics` (счётчики на статью) и `article_view_daily` (суточные ключи уникальности). Новые просмотры больше не записываются в старую SQL-таблицу `article_views`.
+- `ViewTracker` вызывается при открытии статьи и через `POST /api/articles/{slug}/views`. Клиенту не нужно дополнительно отправлять POST после открытия страницы: это отдельный просмотр. IP хранится только как SHA-256 от IP + APP_KEY; реферер — только hostname, User-Agent — семейство браузера.
+- Один пользователь (для гостя — один ip_hash) увеличивает `unique_views` статьи один раз в московские сутки. Все просмотры увеличивают `views` атомарным `$inc`. Суточный ключ защищён уникальным `_id`, массивы браузеров/рефереров содержат `{name, count}` и обновляются атомарно.
+- `statistics:index` создаёт индексы событий `(article_id, viewed_at)` и `(viewed_at)`, уникальный индекс агрегата по `article_id` и переводит старые карты браузеров/рефереров в массивы. Выполните команду перед запуском новой версии. Старые SQL-просмотры автоматически не импортируются; их история не входит в новый событийный отчёт.
+- `GET /api/statistics?period=week|month|year` возвращает `summary`, `activity`, `popular`, `browsers`, `referrers`. API и `/admin/statistics` доступны только администратору. Кэш по периоду живёт 60 секунд, без тегов, сбрасывается при просмотре, создании и удалении комментария.
+- Неделя — последние 7 московских календарных дней включая сегодня; месяц/год — последний календарный месяц/год по сегодня включительно. Mongo `$dateTrunc` использует `Europe/Moscow`; год группируется по неделям с понедельника. Пропущенные интервалы заполнены нулями. SQL `created_at` хранится в UTC (`APP_TIMEZONE=UTC`), перед группировкой комментариев дата сдвигается на +03:00.
+- Карточки отчёта относятся к выбранному периоду: просмотры и число различных `ip_hash` — из событий Mongo, текущие лайки и комментарии, созданные за период, — из MySQL. Уникальные IP в графике считаются отдельно за день/неделю; их сумма может отличаться от числа уникальных за весь период и от суточных уникальных пользователей статьи. Топы статей, браузеров и рефереров показывают всё время. CSV содержит карточки, активность и все топы.
+- `StatisticsUpdated` публикуется в приватный `admin.statistics`; авторизация канала проверяет `isAdmin()`. События комментариев используют `article.{slug}`. При отсутствии Reverb страница работает через HTTP; для живых обновлений нужен Reverb и очередь.
+
+### Запуск разработки
+
+```bash
+cp .env.example .env
+# DB_PASSWORD=secret (либо задайте своё), APP_TIMEZONE=UTC
+# Доступ с хоста: MySQL localhost:3307; MongoDB localhost:27018.
+# В контейнере подключения используют mysql:3306 и mongodb:27017.
+docker compose -f docker-compose.dev.yml up --build -d
+```
+
+Dev-контейнер устанавливает зависимости из lock-файлов, генерирует APP_KEY, запускает SQL-миграции, Mongo-индексы, Vite и обработчик очереди. Блог: http://localhost:8084. Папка проекта смонтирована в контейнер; `docker compose ... logs -f app` показывает запуск. PHP MongoDB-расширение закреплено на 1.20.1, совместимом с composer.lock.
+
+Демо-данные добавляются явно (сидер пересоздаёт статистику просмотров):
+
+```bash
+docker compose -f docker-compose.dev.yml exec app php artisan db:seed
+```
+
+Для Reverb заполните `REVERB_APP_ID`, `REVERB_APP_KEY`, `REVERB_APP_SECRET`, задайте `BROADCAST_CONNECTION=reverb`, `REVERB_HOST=127.0.0.1`, `REVERB_PORT=8080`, `REVERB_SCHEME=http`; значения `VITE_REVERB_*` используются клиентом. Затем перезапустите app и запустите сервер:
+
+```bash
+docker compose -f docker-compose.dev.yml exec -d app php artisan reverb:start --host=0.0.0.0 --port=8080
+```
+
+Без ключей оставьте `BROADCAST_CONNECTION=log`. `/websocket-test` доступен только администратору.
+
+### Проверки
+
+```bash
+docker compose -f docker-compose.dev.yml exec app php artisan test
+docker compose -f docker-compose.dev.yml exec app php artisan route:list
+docker compose -f docker-compose.dev.yml exec app npm run build
+docker compose -f docker-compose.dev.yml exec app npm run typecheck  # vue-tsc --noEmit
+# Только Mongo-интеграции или без них:
+docker compose -f docker-compose.dev.yml exec app php artisan test --group=mongo
+docker compose -f docker-compose.dev.yml exec app php artisan test --exclude-group=mongo
+```
+
+PHPUnit по умолчанию использует SQLite in-memory для контента. Mongo-тесты помечены группой `mongo`; при недоступном соединении они пропускаются. При наличии MongoDB используется отдельная тестовая база `news_blog_test_<pid>`, которая очищается между тестами. Проверяются границы московских суток, параллельные `$inc`, суточная уникальность, SQL/Mongo-слияние, нулевые интервалы, суммы топов и фиксированное число запросов, авторизация, лайки и комментарии с `Event::fake`.
+
+Для проверки SQL-ветки на MySQL укажите **отдельную тестовую базу** (RefreshDatabase удаляет её таблицы):
+
+```bash
+DB_CONNECTION=mysql DB_DATABASE=news_blog_test DB_HOST=mysql DB_USERNAME=laravel DB_PASSWORD=secret php artisan test
+```

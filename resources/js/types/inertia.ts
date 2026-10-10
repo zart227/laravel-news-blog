@@ -1,9 +1,12 @@
+import type { PageProps as InertiaPageProps } from '@inertiajs/core';
+
 export interface User {
   id: number;
   name: string;
   email: string;
   role?: string;
   is_admin?: boolean;
+  email_verified_at?: string | null;
 }
 
 export interface Tag {
@@ -30,12 +33,13 @@ export interface Article {
   tags?: Tag[];
 }
 
-export interface PageProps {
+export interface PageProps extends InertiaPageProps {
   auth: {
     user: User | null;
   };
   errors: Record<string, string[]>;
   flash?: {
+    message?: string | null;
     success?: string | null;
     error?: string | null;
   };

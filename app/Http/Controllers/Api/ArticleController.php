@@ -2,25 +2,23 @@
 
 namespace App\Http\Controllers\Api;
 
-use App\Http\Controllers\Controller;
+use App\Http\Requests\ArticleRequest;
 use App\Models\Article;
 use App\Models\Tag;
-use App\Traits\HandlesErrors;
-use App\Http\Requests\ArticleRequest;
 use App\Services\ArticleService;
-use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Storage;
-use Illuminate\Support\Str;
-use Illuminate\Http\JsonResponse;
+use App\Traits\HandlesErrors;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 use Illuminate\Foundation\Validation\ValidatesRequests;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Routing\Controller as BaseController;
+use Illuminate\Support\Facades\Storage;
 
 /**
  * @OA\Info(
  *     version="1.0.0",
  *     title="Laravel News Blog API",
  *     description="API для новостного блога на Laravel",
+ *
  *     @OA\Contact(
  *         email="admin@example.com"
  *     )
@@ -35,7 +33,7 @@ use Illuminate\Routing\Controller as BaseController;
  */
 class ArticleController extends BaseController
 {
-    use AuthorizesRequests, ValidatesRequests, HandlesErrors;
+    use AuthorizesRequests, HandlesErrors, ValidatesRequests;
 
     protected $articleService;
 
@@ -50,34 +48,45 @@ class ArticleController extends BaseController
      *     path="/api/articles",
      *     tags={"Articles"},
      *     summary="Получить список статей",
+     *
      *     @OA\Parameter(
      *         name="search",
      *         in="query",
      *         description="Поиск по заголовку",
      *         required=false,
+     *
      *         @OA\Schema(type="string")
      *     ),
+     *
      *     @OA\Parameter(
      *         name="status",
      *         in="query",
      *         description="Фильтр по статусу (draft/published)",
      *         required=false,
+     *
      *         @OA\Schema(type="string", enum={"draft", "published"})
      *     ),
+     *
      *     @OA\Parameter(
      *         name="tag",
      *         in="query",
      *         description="Фильтр по ID тега",
      *         required=false,
+     *
      *         @OA\Schema(type="integer")
      *     ),
+     *
      *     @OA\Response(
      *         response=200,
      *         description="Успешный ответ",
+     *
      *         @OA\JsonContent(
+     *
      *             @OA\Property(property="data", type="array",
+     *
      *                 @OA\Items(ref="#/components/schemas/Article")
      *             ),
+     *
      *             @OA\Property(property="links", type="object"),
      *             @OA\Property(property="meta", type="object")
      *         )
@@ -95,13 +104,15 @@ class ArticleController extends BaseController
                 ->latest()
                 ->paginate(12);
 
+            app(\App\Services\StatisticsService::class)->attachViewCounts(collect($articles->items()));
+
             return response()->json([
                 'data' => $articles->items(),
                 'links' => $articles->linkCollection()->map(function ($link) {
                     return [
                         'url' => $link['url'],
                         'label' => $link['label'],
-                        'active' => $link['active']
+                        'active' => $link['active'],
                     ];
                 })->values()->all(),
                 'meta' => [
@@ -112,12 +123,12 @@ class ArticleController extends BaseController
                     'per_page' => $articles->perPage(),
                     'to' => $articles->lastItem(),
                     'total' => $articles->total(),
-                ]
+                ],
             ]);
         } catch (\Throwable $e) {
             return response()->json([
                 'message' => 'Ошибка при загрузке статей',
-                'error' => $e->getMessage()
+                'error' => $e->getMessage(),
             ], 500);
         }
     }
@@ -128,15 +139,20 @@ class ArticleController extends BaseController
      *     tags={"Articles"},
      *     summary="Создать новую статью",
      *     security={{"sanctum": {}}},
+     *
      *     @OA\RequestBody(
      *         required=true,
+     *
      *         @OA\JsonContent(ref="#/components/schemas/ArticleRequest")
      *     ),
+     *
      *     @OA\Response(
      *         response=201,
      *         description="Статья успешно создана",
+     *
      *         @OA\JsonContent(ref="#/components/schemas/Article")
      *     ),
+     *
      *     @OA\Response(
      *         response=422,
      *         description="Ошибка валидации"
@@ -157,7 +173,7 @@ class ArticleController extends BaseController
 
             return response()->json([
                 'message' => 'Статья успешно создана',
-                'article' => $article
+                'article' => $article,
             ]);
         } catch (\Throwable $e) {
             return $this->handleError($e);
@@ -169,18 +185,23 @@ class ArticleController extends BaseController
      *     path="/api/articles/{article}",
      *     tags={"Articles"},
      *     summary="Получить детали статьи",
+     *
      *     @OA\Parameter(
      *         name="article",
      *         in="path",
      *         description="ID статьи",
      *         required=true,
+     *
      *         @OA\Schema(type="integer")
      *     ),
+     *
      *     @OA\Response(
      *         response=200,
      *         description="Успешный ответ",
+     *
      *         @OA\JsonContent(ref="#/components/schemas/Article")
      *     ),
+     *
      *     @OA\Response(
      *         response=404,
      *         description="Статья не найдена"
@@ -204,22 +225,29 @@ class ArticleController extends BaseController
      *     tags={"Articles"},
      *     summary="Обновить статью",
      *     security={{"sanctum": {}}},
+     *
      *     @OA\Parameter(
      *         name="article",
      *         in="path",
      *         description="ID статьи",
      *         required=true,
+     *
      *         @OA\Schema(type="integer")
      *     ),
+     *
      *     @OA\RequestBody(
      *         required=true,
+     *
      *         @OA\JsonContent(ref="#/components/schemas/ArticleRequest")
      *     ),
+     *
      *     @OA\Response(
      *         response=200,
      *         description="Статья успешно обновлена",
+     *
      *         @OA\JsonContent(ref="#/components/schemas/Article")
      *     ),
+     *
      *     @OA\Response(
      *         response=404,
      *         description="Статья не найдена"
@@ -243,7 +271,7 @@ class ArticleController extends BaseController
 
             return response()->json([
                 'message' => 'Статья успешно обновлена',
-                'article' => $article
+                'article' => $article,
             ]);
         } catch (\Throwable $e) {
             return $this->handleError($e);
@@ -256,13 +284,16 @@ class ArticleController extends BaseController
      *     tags={"Articles"},
      *     summary="Удалить статью",
      *     security={{"sanctum": {}}},
+     *
      *     @OA\Parameter(
      *         name="article",
      *         in="path",
      *         description="ID статьи",
      *         required=true,
+     *
      *         @OA\Schema(type="integer")
      *     ),
+     *
      *     @OA\Response(
      *         response=204,
      *         description="Статья успешно удалена"
@@ -283,7 +314,7 @@ class ArticleController extends BaseController
             $this->articleService->deleteArticle($article);
 
             return response()->json([
-                'message' => 'Статья успешно удалена'
+                'message' => 'Статья успешно удалена',
             ]);
         } catch (\Throwable $e) {
             return $this->handleError($e);

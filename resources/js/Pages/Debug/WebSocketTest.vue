@@ -5,22 +5,27 @@ const connectionStatus = ref('Подключение...');
 const messages = ref<string[]>([]);
 
 onMounted(() => {
+    const echo = window.Echo;
+    if (!echo) {
+        connectionStatus.value = 'WebSocket не настроен';
+        return;
+    }
     // Подписываемся на тестовый канал
-    window.Echo.channel('test-channel')
+    echo.channel('test-channel')
         .listen('TestEvent', (e: any) => {
             messages.value.push(e.message);
         });
 
     // Проверяем статус соединения
-    window.Echo.connector.pusher.connection.bind('connected', () => {
+    echo.connector.pusher.connection.bind('connected', () => {
         connectionStatus.value = 'Подключено';
     });
 
-    window.Echo.connector.pusher.connection.bind('disconnected', () => {
+    echo.connector.pusher.connection.bind('disconnected', () => {
         connectionStatus.value = 'Отключено';
     });
 
-    window.Echo.connector.pusher.connection.bind('error', (err: any) => {
+    echo.connector.pusher.connection.bind('error', (err: any) => {
         connectionStatus.value = `Ошибка: ${err.message}`;
     });
 });
