@@ -2,52 +2,25 @@
 
 namespace App\Events;
 
-use Illuminate\Broadcasting\Channel;
 use Illuminate\Broadcasting\InteractsWithSockets;
+use Illuminate\Broadcasting\PrivateChannel;
 use Illuminate\Contracts\Broadcasting\ShouldBroadcast;
 use Illuminate\Foundation\Events\Dispatchable;
 use Illuminate\Queue\SerializesModels;
-use Illuminate\Support\Facades\Cache;
 
 class StatisticsUpdated implements ShouldBroadcast
 {
     use Dispatchable, InteractsWithSockets, SerializesModels;
 
-    public $articleId;
-    public $type;
-    public $count;
+    public function __construct(public int $articleId, public string $type, public int $count) {}
 
-    /**
-     * Create a new event instance.
-     */
-    public function __construct(int $articleId, string $type, int $count)
-    {
-        $this->articleId = $articleId;
-        $this->type = $type; // 'views' или 'comments'
-        $this->count = $count;
-
-        // Очищаем кэш статистики
-        Cache::tags(['statistics'])->flush();
-    }
-
-    /**
-     * Get the channels the event should broadcast on.
-     *
-     * @return array<int, \Illuminate\Broadcasting\Channel>
-     */
     public function broadcastOn(): array
     {
-        return [
-            new Channel('statistics'),
-        ];
+        return [new PrivateChannel('admin.statistics')];
     }
 
     public function broadcastWith(): array
     {
-        return [
-            'article_id' => $this->articleId,
-            'type' => $this->type,
-            'count' => $this->count,
-        ];
+        return ['article_id' => $this->articleId, 'type' => $this->type, 'count' => $this->count];
     }
-} 
+}

@@ -2,16 +2,17 @@
 
 namespace App\Http\Controllers\Web;
 
+use App\Http\Controllers\Controller;
+use App\Http\Requests\ArticleRequest;
 use App\Models\Article;
 use App\Models\Tag;
-use App\Traits\HandlesErrors;
-use App\Http\Requests\ArticleRequest;
 use App\Services\ArticleService;
-use Illuminate\Http\Request;
+use App\Services\StatisticsService;
+use App\Services\ViewTracker;
+use App\Traits\HandlesErrors;
 use Illuminate\Support\Facades\Storage;
 use Inertia\Inertia;
 use Inertia\Response;
-use App\Http\Controllers\Controller;
 
 class ArticleController extends Controller
 {
@@ -30,11 +31,11 @@ class ArticleController extends Controller
             ->when(auth()->guest(), function ($query) {
                 $query->where('status', 'published');
             })
-            ->withCount(['likes', 'dislikes', 'views', 'comments'])
+            ->withCount(['likes', 'dislikes', 'comments'])
             ->with(['user', 'tags'])
             ->latest();
 
-        $currentPage = request()->input('page', 1);
+        $currentPage = max(1, (int) request()->input('page', 1));
         $perPage = 12;
 
         // Если запрос через Inertia (частичные данные) - возвращаем только текущую страницу
@@ -43,15 +44,15 @@ class ArticleController extends Controller
         } else {
             // Если прямой запрос или полная загрузка страницы - загружаем все данные до текущей страницы
             $allResults = collect();
-            
+
             for ($page = 1; $page <= $currentPage; $page++) {
                 $pageResults = $query->clone()->paginate($perPage, ['*'], 'page', $page);
                 $allResults = $allResults->concat($pageResults->items());
             }
-            
+
             // Получаем общее количество для пагинации
             $total = $query->count();
-            
+
             // Создаем пагинатор с уже загруженными данными
             $articles = new \Illuminate\Pagination\LengthAwarePaginator(
                 $allResults,
@@ -62,6 +63,8 @@ class ArticleController extends Controller
             );
         }
 
+        app(StatisticsService::class)->attachViewCounts(collect($articles->items()));
+
         return Inertia::render('Articles/Index', [
             'articles' => $articles->items(),
             'articlesPagination' => [
@@ -69,7 +72,7 @@ class ArticleController extends Controller
                 'last_page' => $articles->lastPage(),
                 'per_page' => $articles->perPage(),
                 'total' => $articles->total(),
-            ]
+            ],
         ]);
     }
 
@@ -79,35 +82,24 @@ class ArticleController extends Controller
             abort(404);
         }
 
-        // Увеличиваем счетчик просмотров
-        if (!$article->views()->where(function ($query) {
-            $query->where('user_id', auth()->id())
-                  ->orWhere(function ($q) {
-                      $q->whereNull('user_id')
-                        ->where('ip_address', request()->ip());
-                  });
-        })->whereDate('created_at', today())->exists()) {
-            $article->views()->create([
-                'user_id' => auth()->id(),
-                'ip_address' => request()->ip()
-            ]);
-        }
+        $statistics = app(ViewTracker::class)->track($article, request());
 
         $article->load([
-            'user:id,name', 
+            'user:id,name',
             'tags',
             'comments' => function ($query) {
                 $query->whereNull('parent_id')
-                      ->withCount(['likes', 'dislikes'])
-                      ->with([
-                          'user:id,name',
-                          'replies' => function ($query) {
-                              $query->withCount(['likes', 'dislikes'])
-                                   ->with('user:id,name');
-                          }
-                      ]);
-            }
-        ])->loadCount(['likes', 'dislikes', 'views']);
+                    ->withCount(['likes', 'dislikes'])
+                    ->with([
+                        'user:id,name',
+                        'replies' => function ($query) {
+                            $query->withCount(['likes', 'dislikes'])
+                                ->with('user:id,name');
+                        },
+                    ]);
+            },
+        ])->loadCount(['likes', 'dislikes']);
+        $article->setAttribute('views_count', $statistics['views']);
 
         // Получаем общее количество комментариев (включая вложенные) одним запросом
         $totalComments = $article->comments()
@@ -118,7 +110,7 @@ class ArticleController extends Controller
         return Inertia::render('Articles/Show', [
             'article' => $article,
             'comments' => $article->comments,
-            'totalComments' => $totalComments
+            'totalComments' => $totalComments,
         ]);
     }
 
@@ -130,14 +122,14 @@ class ArticleController extends Controller
 
         return Inertia::render('Admin/Articles/Index', [
             'articles' => $articles,
-            'tags' => Tag::all()
+            'tags' => Tag::all(),
         ]);
     }
 
     public function create(): Response
     {
         return Inertia::render('Admin/Articles/Create', [
-            'tags' => Tag::all()
+            'tags' => Tag::all(),
         ]);
     }
 
@@ -163,7 +155,7 @@ class ArticleController extends Controller
     {
         return Inertia::render('Admin/Articles/Edit', [
             'article' => $article->load('tags'),
-            'tags' => Tag::all()
+            'tags' => Tag::all(),
         ]);
     }
 
@@ -202,4 +194,4 @@ class ArticleController extends Controller
             return back()->with('error', 'Ошибка при удалении статьи');
         }
     }
-} 
+}
