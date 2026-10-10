@@ -12,18 +12,6 @@ interface Props {
   initialComments: Comment[];
 }
 
-interface EchoChannel {
-  listen(event: string, callback: (e: any) => void): EchoChannel;
-  leave(): void;
-}
-
-interface Echo {
-  channel(name: string): EchoChannel;
-  leave(name: string): void;
-}
-
-declare const Echo: Echo;
-
 const props = defineProps<Props>();
 const page = usePage();
 
@@ -129,7 +117,7 @@ const submitComment = async () => {
 // Обновление комментария
 const updateComment = async (commentId: number, content: string) => {
   try {
-    const response = await axios.put(`/api/comments/${commentId}`, { content });
+    const response = await axios.patch(`/api/comments/${commentId}`, { content });
     const comment = findComment(comments.value, commentId);
     if (comment) {
       comment.content = content;
@@ -180,10 +168,10 @@ const removeComment = (comments: Comment[], id: number): boolean => {
 
 // WebSocket подписка
 onMounted(() => {
-  const channel = Echo.channel(`article.${props.articleSlug}`);
+  const channel = window.Echo?.channel(`article.${props.articleSlug}`);
   
   channel
-    .listen('.comment.created', (e: { comment: Comment }) => {
+    ?.listen('.comment.created', (e: { comment: Comment }) => {
       const newComment = e.comment;
       if (newComment.parent_id) {
         const parentComment = findComment(comments.value, newComment.parent_id);
@@ -209,7 +197,7 @@ onMounted(() => {
 
 // Отписка от WebSocket
 onBeforeUnmount(() => {
-  Echo.leave(`article.${props.articleSlug}`);
+  window.Echo?.leave(`article.${props.articleSlug}`);
 });
 
 // Обработка ответа на комментарий

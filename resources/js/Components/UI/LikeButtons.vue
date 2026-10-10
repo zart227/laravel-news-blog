@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { ref } from 'vue';
-import { router } from '@inertiajs/vue3';
+import axios from 'axios';
 import { HandThumbUpIcon as ThumbUpIcon, HandThumbDownIcon as ThumbDownIcon } from '@heroicons/vue/24/outline';
 
 interface Props {
@@ -15,7 +15,7 @@ interface Props {
 interface LikeResponse {
   likes_count: number;
   dislikes_count: number;
-  action: 'liked' | 'disliked' | null;
+  action: 'liked' | 'unliked' | 'disliked' | 'undisliked';
 }
 
 const props = withDefaults(defineProps<Props>(), {
@@ -30,14 +30,18 @@ const dislikes = ref(props.initialDislikes);
 const isLiked = ref(props.isLiked);
 const isDisliked = ref(props.isDisliked);
 
+const busy = ref(false);
+
 const toggleLike = async () => {
+  if (busy.value) return;
+  busy.value = true;
   try {
-    const response = await router.post('/like', {
+    const response = await axios.post<LikeResponse>('/like', {
       type: props.type,
       id: props.id
     });
 
-    const data = response as unknown as LikeResponse;
+    const data = response.data;
     if (data) {
       likes.value = data.likes_count;
       dislikes.value = data.dislikes_count;
@@ -46,17 +50,21 @@ const toggleLike = async () => {
     }
   } catch (error) {
     console.error('Error toggling like:', error);
+  } finally {
+    busy.value = false;
   }
 };
 
 const toggleDislike = async () => {
+  if (busy.value) return;
+  busy.value = true;
   try {
-    const response = await router.post('/dislike', {
+    const response = await axios.post<LikeResponse>('/dislike', {
       type: props.type,
       id: props.id
     });
 
-    const data = response as unknown as LikeResponse;
+    const data = response.data;
     if (data) {
       likes.value = data.likes_count;
       dislikes.value = data.dislikes_count;
@@ -65,6 +73,8 @@ const toggleDislike = async () => {
     }
   } catch (error) {
     console.error('Error toggling dislike:', error);
+  } finally {
+    busy.value = false;
   }
 };
 </script>
@@ -72,6 +82,7 @@ const toggleDislike = async () => {
 <template>
   <div class="flex items-center space-x-4">
     <button
+      :disabled="busy"
       @click="toggleLike"
       class="flex items-center space-x-1 text-sm"
       :class="{ 'text-blue-500': isLiked }"
@@ -80,6 +91,7 @@ const toggleDislike = async () => {
       <span>{{ likes }}</span>
     </button>
     <button
+      :disabled="busy"
       @click="toggleDislike"
       class="flex items-center space-x-1 text-sm"
       :class="{ 'text-red-500': isDisliked }"

@@ -10,6 +10,11 @@
 
     <div class="py-12">
       <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
+        <form @submit.prevent="searchArticles" class="mb-6 flex gap-3">
+          <label for="article-search" class="sr-only">Поиск по заголовку</label>
+          <input id="article-search" v-model="search" type="search" placeholder="Поиск по заголовку" class="w-full rounded-md border-gray-300" />
+          <button class="rounded-md bg-blue-600 px-4 py-2 text-white" type="submit">Найти</button>
+        </form>
         <div class="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
           <div v-for="article in articles" 
                :key="article.id" 
@@ -48,7 +53,7 @@
 </template>
 
 <script setup lang="ts">
-import { Head, usePage, WhenVisible } from '@inertiajs/vue3';
+import { Head, usePage, WhenVisible, router } from '@inertiajs/vue3';
 import { computed, ref, onMounted, watch } from 'vue';
 import AppLayout from '@/Layouts/AppLayout.vue';
 import ArticleCard from '@/Components/Articles/ArticleCard.vue';
@@ -58,12 +63,15 @@ import type { Article, PageProps, ArticlesPagination } from '@/types';
 interface WhenVisibleParams {
   data: {
     page: number;
+    search: string;
   };
   only: string[];
   preserveState: boolean;
 }
 
 const page = usePage<PageProps>();
+const search = ref<string>(page.props.filters?.search ?? '');
+const searchArticles = () => router.get('/articles', { search: search.value.trim(), page: 1 }, { preserveState: true });
 const loadingTrigger = ref<HTMLElement | null>(null);
 
 // Сохраняем все загруженные статьи
@@ -101,6 +109,7 @@ const isFirstPage = computed(() => {
 
 const visibleParams = computed<WhenVisibleParams>(() => ({
   data: {
+    search: page.props.filters?.search ?? '',
     page: page.props.articlesPagination?.current_page ? page.props.articlesPagination.current_page + 1 : 1,
   },
   only: ['articles', 'articlesPagination'],

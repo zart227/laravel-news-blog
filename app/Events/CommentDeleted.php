@@ -13,18 +13,24 @@ class CommentDeleted implements ShouldBroadcast
     use Dispatchable, InteractsWithSockets, SerializesModels;
 
     public $commentId;
+
     public $articleId;
 
-    public function __construct(int $commentId, int $articleId)
+    public function __construct(int $commentId, int $articleId, public string $articleSlug)
     {
         $this->commentId = $commentId;
         $this->articleId = $articleId;
     }
 
+    public function broadcastAs(): string
+    {
+        return 'comment.deleted';
+    }
+
     public function broadcastOn(): array
     {
         return [
-            new Channel('article.' . $this->articleId),
+            new Channel('article.'.$this->articleSlug),
         ];
     }
 
@@ -34,4 +40,4 @@ class CommentDeleted implements ShouldBroadcast
             'commentId' => $this->commentId,
         ];
     }
-} 
+}

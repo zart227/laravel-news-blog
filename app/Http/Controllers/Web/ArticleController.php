@@ -27,10 +27,12 @@ class ArticleController extends Controller
 
     public function index(): Response
     {
+        $search = trim((string) request()->input('search', ''));
         $query = Article::query()
             ->when(auth()->guest(), function ($query) {
                 $query->where('status', 'published');
             })
+            ->when($search !== '', fn ($query) => $query->where('title', 'like', '%'.$search.'%'))
             ->withCount(['likes', 'dislikes', 'comments'])
             ->with(['user', 'tags'])
             ->latest();
@@ -67,6 +69,7 @@ class ArticleController extends Controller
 
         return Inertia::render('Articles/Index', [
             'articles' => $articles->items(),
+            'filters' => ['search' => $search],
             'articlesPagination' => [
                 'current_page' => $articles->currentPage(),
                 'last_page' => $articles->lastPage(),

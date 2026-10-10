@@ -20,10 +20,15 @@ class CommentUpdated implements ShouldBroadcast
         $this->comment = $comment;
     }
 
+    public function broadcastAs(): string
+    {
+        return 'comment.updated';
+    }
+
     public function broadcastOn(): array
     {
         return [
-            new Channel('article.' . $this->comment->article->slug),
+            new Channel('article.'.$this->comment->article->slug),
         ];
     }
 
@@ -33,4 +38,4 @@ class CommentUpdated implements ShouldBroadcast
             'comment' => $this->comment->load(['user', 'parent.user', 'article']),
         ];
     }
-} 
+}

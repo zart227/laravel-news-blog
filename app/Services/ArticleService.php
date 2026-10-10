@@ -3,10 +3,9 @@
 namespace App\Services;
 
 use App\Models\Article;
+use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Database\Eloquent\Collection;
-use Illuminate\Pagination\LengthAwarePaginator;
 
 class ArticleService
 {
@@ -14,9 +13,12 @@ class ArticleService
 
     public function getArticles(array $filters = [], int $perPage = 10): LengthAwarePaginator
     {
-        $cacheKey = 'articles:all';
+        ksort($filters);
+        $page = LengthAwarePaginator::resolveCurrentPage();
+        $version = Cache::rememberForever('articles:version', fn () => (string) \Illuminate\Support\Str::uuid());
+        $cacheKey = 'articles:'.$version.':'.hash('sha256', json_encode([$filters, $perPage, $page]));
 
-        return Cache::remember($cacheKey, self::CACHE_TTL, function () use ($filters, $perPage) {
+        return Cache::remember($cacheKey, self::CACHE_TTL, function () use ($filters, $perPage, $page) {
             $query = Article::query()
                 ->with(['user', 'tags'])
                 ->latest();
@@ -28,13 +30,13 @@ class ArticleService
                 });
             }
 
-            return $query->paginate($perPage);
+            return $query->paginate($perPage, ['*'], 'page', $page);
         });
     }
 
     public function getArticle(int $id): ?Article
     {
-        $cacheKey = 'article:' . $id;
+        $cacheKey = 'article:'.$id;
 
         return Cache::remember($cacheKey, self::CACHE_TTL, function () use ($id) {
             return Article::with(['user', 'tags', 'comments.user'])->findOrFail($id);
@@ -49,7 +51,7 @@ class ArticleService
                 'content' => $data['content'],
                 'image_path' => $data['image_path'] ?? null,
                 'user_id' => auth()->id(),
-                'status' => $data['status'] ?? 'draft'
+                'status' => $data['status'] ?? 'draft',
             ]);
 
             if (isset($data['tags'])) {
@@ -69,7 +71,7 @@ class ArticleService
                 'title' => $data['title'],
                 'content' => $data['content'],
                 'image_path' => $data['image_path'] ?? $article->image_path,
-                'status' => $data['status'] ?? $article->status
+                'status' => $data['status'] ?? $article->status,
             ]);
 
             if (isset($data['tags'])) {
@@ -92,9 +94,9 @@ class ArticleService
 
     protected function clearCache(?Article $article = null): void
     {
-        Cache::forget('articles:all');
+        Cache::forever('articles:version', (string) \Illuminate\Support\Str::uuid());
         if ($article) {
-            Cache::forget('article:' . $article->id);
+            Cache::forget('article:'.$article->id);
         }
     }
-} 
+}
