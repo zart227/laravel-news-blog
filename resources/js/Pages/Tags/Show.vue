@@ -45,9 +45,7 @@
                         data: {
                             page: page.props.articlesPagination.current_page + 1,
                         },
-                        only: ['articles', 'articlesPagination'],
-                        preserveScroll: true,
-                        preserveState: true
+                        only: ['articles', 'articlesPagination']
                     }"
                     :buffer="1000"
                 >
@@ -71,11 +69,16 @@ import AppLayout from '@/Layouts/AppLayout.vue';
 import ArticleCard from '@/Components/Articles/ArticleCard.vue';
 import LoadingSpinner from '@/Components/UI/LoadingSpinner.vue';
 
-const page = usePage();
+interface TagPageProps extends Record<string, unknown> {
+  tag: { name: string; description: string | null };
+  articles: { data: import('@/types').Article[] };
+  articlesPagination: import('@/types').ArticlesPagination;
+}
+const page = usePage<TagPageProps>();
 const loadingTrigger = ref(null);
 
 // Сохраняем все загруженные статьи
-const allArticles = ref([]);
+const allArticles = ref<import('@/types').Article[]>([]);
 
 // При изменении данных статей обновляем массив всех статей
 watch(() => page.props.articles.data, (newArticles) => {
