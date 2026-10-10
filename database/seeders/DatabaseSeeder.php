@@ -2,15 +2,13 @@
 
 namespace Database\Seeders;
 
+use App\Enums\UserRole;
 use App\Models\Article;
-use App\Models\ArticleView;
 use App\Models\Comment;
 use App\Models\Tag;
 use App\Models\User;
-use App\Enums\UserRole;
 // use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
-use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Storage;
 
 class DatabaseSeeder extends Seeder
@@ -28,7 +26,7 @@ class DatabaseSeeder extends Seeder
         $admin = User::factory()->create([
             'name' => 'Admin User',
             'email' => 'admin@example.com',
-            'role' => UserRole::ADMIN
+            'role' => UserRole::ADMIN,
         ]);
 
         $admins = User::factory(3)->create(['role' => UserRole::ADMIN]);
@@ -63,10 +61,10 @@ class DatabaseSeeder extends Seeder
             // Создаем корневые комментарии
             $rootComments = collect();
             $commentsCount = rand(3, 8);
-            
+
             for ($i = 0; $i < $commentsCount; $i++) {
                 $comment = Comment::factory()->forArticle($article)->create([
-                    'user_id' => $shuffledUsers[$userIndex % $users->count()]->id
+                    'user_id' => $shuffledUsers[$userIndex % $users->count()]->id,
                 ]);
                 $rootComments->push($comment);
                 $userIndex++;
@@ -77,10 +75,10 @@ class DatabaseSeeder extends Seeder
                 // Первый уровень ответов
                 $replies = collect();
                 $repliesCount = rand(1, 3);
-                
+
                 for ($i = 0; $i < $repliesCount; $i++) {
                     $reply = Comment::factory()->asReply($comment)->create([
-                        'user_id' => $shuffledUsers[$userIndex % $users->count()]->id
+                        'user_id' => $shuffledUsers[$userIndex % $users->count()]->id,
                     ]);
                     $replies->push($reply);
                     $userIndex++;
@@ -89,10 +87,10 @@ class DatabaseSeeder extends Seeder
                 // Второй уровень ответов
                 $replies->each(function ($reply) use ($shuffledUsers, &$userIndex, $users) {
                     $nestedRepliesCount = rand(0, 2);
-                    
+
                     for ($i = 0; $i < $nestedRepliesCount; $i++) {
                         Comment::factory()->asReply($reply)->create([
-                            'user_id' => $shuffledUsers[$userIndex % $users->count()]->id
+                            'user_id' => $shuffledUsers[$userIndex % $users->count()]->id,
                         ]);
                         $userIndex++;
                     }
@@ -105,7 +103,7 @@ class DatabaseSeeder extends Seeder
             UserSeeder::class,        // Дополнительные пользователи
             ArticleViewSeeder::class, // Просмотры статей
             LikeSeeder::class,        // Лайки и дизлайки
-            StatisticsSeeder::class,  // Статистика в MongoDB на основе просмотров и лайков
+            StatisticsSeeder::class,  // Индексы агрегатов MongoDB
         ]);
     }
 }
