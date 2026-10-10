@@ -19,6 +19,6 @@ class AdminMiddleware
             return $next($request);
         }
 
-        return redirect()->route('home')->with('error', 'У вас нет прав для доступа к этой странице.');
+        abort(403);
     }
 }

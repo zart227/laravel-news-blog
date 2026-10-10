@@ -1,7 +1,7 @@
 <?php
 
 return [
-    'default' => env('BROADCAST_DRIVER', 'reverb'),
+    'default' => env('BROADCAST_CONNECTION', 'log'),
 
     'connections' => [
         'pusher' => [
@@ -23,13 +23,16 @@ return [
         ],
 
         'reverb' => [
-            'driver' => 'reverb',
+            'driver' => 'pusher',
             'app_id' => env('REVERB_APP_ID'),
             'key' => env('REVERB_APP_KEY'),
             'secret' => env('REVERB_APP_SECRET'),
-            'host' => env('REVERB_HOST', '127.0.0.1'),
-            'port' => env('REVERB_PORT', 6001),
-            'scheme' => env('REVERB_SCHEME', 'http'),
+            'options' => [
+                'host' => env('REVERB_HOST', '127.0.0.1'),
+                'port' => env('REVERB_PORT', 8080),
+                'scheme' => env('REVERB_SCHEME', 'http'),
+                'useTLS' => env('REVERB_SCHEME', 'http') === 'https',
+            ],
         ],
 
         'ably' => [
@@ -50,4 +53,4 @@ return [
             'driver' => 'null',
         ],
     ],
-]; 
+];

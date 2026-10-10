@@ -1,14 +1,14 @@
 <?php
 
-use App\Http\Controllers\Web\ArticleController;
-use App\Http\Controllers\Web\TagController;
-use App\Http\Controllers\ProfileController;
+use App\Http\Controllers\Admin\DashboardController;
 use App\Http\Controllers\Admin\StatisticsController;
 use App\Http\Controllers\Auth\AuthenticatedSessionController;
-use App\Http\Controllers\WebSocketTestController;
 use App\Http\Controllers\Auth\RegisteredUserController;
 use App\Http\Controllers\LikeController;
-use App\Http\Controllers\Admin\DashboardController;
+use App\Http\Controllers\ProfileController;
+use App\Http\Controllers\Web\ArticleController;
+use App\Http\Controllers\Web\TagController;
+use App\Http\Controllers\WebSocketTestController;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
 
@@ -33,7 +33,7 @@ Route::middleware('guest')->group(function () {
 Route::middleware('auth')->group(function () {
     Route::post('logout', [AuthenticatedSessionController::class, 'destroy'])
         ->name('logout');
-    
+
     Route::get('/auth-test', function () {
         return Inertia::render('Auth/Test');
     })->name('auth.test');
@@ -64,7 +64,7 @@ Route::middleware('auth')->group(function () {
         });
 
         Route::middleware(['can:articles.delete'])->delete('/articles/{article}', [ArticleController::class, 'destroy'])->name('admin.articles.destroy');
-        
+
         // Теги
         Route::middleware(['can:tags.view'])->group(function () {
             Route::get('/tags', [TagController::class, 'adminIndex'])->name('admin.tags.index');
@@ -87,8 +87,8 @@ Route::middleware('auth')->group(function () {
     });
 });
 
-Route::get('/websocket-test', [WebSocketTestController::class, 'index'])->name('websocket.test');
-Route::post('/websocket-test/send', [WebSocketTestController::class, 'sendMessage'])->name('websocket.send');
+Route::middleware(['auth', 'admin'])->get('/websocket-test', [WebSocketTestController::class, 'index'])->name('websocket.test');
+Route::middleware(['auth', 'admin'])->post('/websocket-test/send', [WebSocketTestController::class, 'sendMessage'])->name('websocket.send');
 
 // Fallback route для обработки 404 ошибок
 Route::fallback(function () {
@@ -96,10 +96,6 @@ Route::fallback(function () {
 });
 
 Route::middleware(['auth', 'verified'])->group(function () {
-    Route::get('/dashboard', fn () => view('dashboard'))->name('dashboard');
-    Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
-    Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
-    Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
     Route::post('/like', [LikeController::class, 'toggleLike'])->name('like.toggle');
     Route::post('/dislike', [LikeController::class, 'toggleDislike'])->name('dislike.toggle');
 });

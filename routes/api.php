@@ -1,14 +1,14 @@
 <?php
 
-use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Api\ArticleController;
-use App\Http\Controllers\Api\TagController;
 use App\Http\Controllers\Api\CommentController;
+use App\Http\Controllers\Api\StatisticsController;
+use App\Http\Controllers\Api\TagController;
 use App\Http\Controllers\ArticleViewController;
-use App\Http\Controllers\StatisticsController;
-use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Cache\RateLimiting\Limit;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\RateLimiter;
+use Illuminate\Support\Facades\Route;
 
 Route::middleware(['throttle:api'])->group(function () {
     Route::get('articles', [ArticleController::class, 'index']);

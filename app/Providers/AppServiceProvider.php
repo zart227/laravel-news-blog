@@ -2,11 +2,11 @@
 
 namespace App\Providers;
 
-use Illuminate\Support\ServiceProvider;
-use Illuminate\Support\Facades\URL;
-use Illuminate\Support\Facades\Vite;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\Route;
+use Illuminate\Support\Facades\URL;
+use Illuminate\Support\Facades\Vite;
+use Illuminate\Support\ServiceProvider;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -49,7 +49,7 @@ class AppServiceProvider extends ServiceProvider
         // Настройка URL для локальной среды
         if ($this->app->environment('local')) {
             URL::forceScheme('http');
-            
+
             // Настройка Vite
             Vite::useScriptTagAttributes([
                 'type' => 'module',
@@ -59,7 +59,7 @@ class AppServiceProvider extends ServiceProvider
             Vite::useBuildDirectory('build');
             Vite::useHotFile(public_path('hot'));
             Vite::useManifestFilename('manifest.json');
-            
+
             // Принудительно устанавливаем URL для dev-сервера Vite
             config([
                 'vite.configs.default.dev_server.url' => env('VITE_DEV_SERVER_URL', 'http://127.0.0.1:5173'),
@@ -69,7 +69,7 @@ class AppServiceProvider extends ServiceProvider
 
         // Регистрация политик авторизации
         Gate::define('admin', function ($user) {
-            return $user->role === 'admin';
+            return $user->isAdmin();
         });
 
         // Привязка моделей к маршрутам
